@@ -1,0 +1,288 @@
+{% extends "base.html" %}
+{% block title %}News Map - Daily Briefing{% endblock %}
+{% block content %}
+<header class="newsmap-header">
+    <div class="newsmap-title">
+        <h1>News Map</h1>
+        <p class="newsmap-subtitle">How today's news connects to your holdings</p>
+    </div>
+    {% if briefing %}
+    <span class="briefing-date">{{ briefing.market_date.strftime('%B %d, %Y') }}</span>
+    {% endif %}
+</header>
+
+{% if briefing %}
+<div class="newsmap-container">
+    <div id="newsmap-graph" class="newsmap-graph"></div>
+    <aside id="newsmap-detail" class="newsmap-detail hidden">
+        <button id="newsmap-detail-close" class="detail-close" aria-label="Close">&times;</button>
+        <div id="newsmap-detail-content"></div>
+    </aside>
+</div>
+
+<div class="newsmap-legend">
+    <span class="legend-item positive">&#9679; Positive</span>
+    <span class="legend-item neutral">&#9679; Neutral</span>
+    <span class="legend-item negative">&#9679; Negative</span>
+    <span class="legend-item ticker-node">&#9632; Your Holdings</span>
+</div>
+
+<!-- Briefing HTML is rendered server-side and contains the graph data JSON -->
+<div id="briefing-data-container" style="display:none">
+    {{ briefing.summary_html|safe }}
+</div>
+
+<noscript>
+    <div class="newsmap-fallback">
+        <h2>News Map requires JavaScript</h2>
+        <p>View the <a href="/">Dashboard</a> for a non-interactive briefing.</p>
+    </div>
+</noscript>
+{% else %}
+<article class="empty-state">
+    <div class="empty-state-icon">&#128506;</div>
+    <h2>No briefing data</h2>
+    <p>Generate a briefing from the <a href="/">Dashboard</a> first, then come back here to explore the news map.</p>
+</article>
+{% endif %}
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.30.4/cytoscape.min.js"></script>
+<script>
+(function() {
+    'use strict';
+
+    var dataEl = document.getElementById('newsmap-graph-data');
+    if (!dataEl || typeof cytoscape === 'undefined') return;
+
+    var data;
+    try {
+        data = JSON.parse(dataEl.textContent);
+    } catch (e) {
+        return;
+    }
+
+    if (!data.nodes || !data.nodes.length) return;
+
+    var SENTIMENT_COLORS = {
+        positive: '#10b981',
+        negative: '#ef4444',
+        neutral:  '#6b7280'
+    };
+
+    // Build Cytoscape elements
+    var elements = [];
+
+    data.nodes.forEach(function(n) {
+        elements.push({
+            data: {
+                id: n.id,
+                label: n.label,
+                type: n.type,
+                _meta: n
+            }
+        });
+    });
+
+    data.edges.forEach(function(e) {
+        elements.push({
+            data: {
+                source: e.source,
+                target: e.target,
+                sentiment: e.sentiment,
+                score: e.score,
+                reason: e.reason
+            }
+        });
+    });
+
+    var textColor = getComputedStyle(document.documentElement)
+        .getPropertyValue('--pico-color').trim() || '#333';
+
+    var cy = cytoscape({
+        container: document.getElementById('newsmap-graph'),
+        elements: elements,
+        style: [
+            {
+                selector: 'node[type="ticker"]',
+                style: {
+                    'label': 'data(label)',
+                    'shape': 'round-rectangle',
+                    'width': 90,
+                    'height': 44,
+                    'background-color': '#1e293b',
+                    'color': '#ffffff',
+                    'text-valign': 'center',
+                    'text-halign': 'center',
+                    'font-weight': 'bold',
+                    'font-size': '14px',
+                    'border-width': 3,
+                    'border-color': '#3b82f6'
+                }
+            },
+            {
+                selector: 'node[type="story"]',
+                style: {
+                    'label': 'data(label)',
+                    'shape': 'round-rectangle',
+                    'width': 'label',
+                    'height': 32,
+                    'padding': '10px',
+                    'background-color': '#f8fafc',
+                    'color': '#334155',
+                    'text-valign': 'center',
+                    'text-halign': 'center',
+                    'font-size': '11px',
+                    'text-max-width': '160px',
+                    'text-wrap': 'ellipsis',
+                    'border-width': 3,
+                    'border-color': '#6b7280'
+                }
+            },
+            {
+                selector: 'edge[sentiment="positive"]',
+                style: { 'line-color': '#10b981', 'width': 2, 'curve-style': 'bezier' }
+            },
+            {
+                selector: 'edge[sentiment="negative"]',
+                style: { 'line-color': '#ef4444', 'width': 2, 'curve-style': 'bezier' }
+            },
+            {
+                selector: 'edge[sentiment="neutral"]',
+                style: { 'line-color': '#6b7280', 'width': 1.5, 'curve-style': 'bezier' }
+            },
+            {
+                selector: 'node:active',
+                style: { 'overlay-opacity': 0.1 }
+            },
+            {
+                selector: 'node.highlighted',
+                style: { 'border-width': 5 }
+            }
+        ],
+        layout: {
+            name: 'cose',
+            animate: true,
+            animationDuration: 800,
+            nodeRepulsion: function() { return 6000; },
+            idealEdgeLength: function() { return 100; },
+            gravity: 0.5,
+            numIter: 300,
+            padding: 50,
+            fit: true,
+            stop: function() {
+                cy.fit(undefined, 50);
+            }
+        },
+        userZoomingEnabled: true,
+        userPanningEnabled: true,
+        boxSelectionEnabled: false,
+        minZoom: 0.3,
+        maxZoom: 3
+    });
+
+    // Color story node borders by average sentiment of connected edges
+    data.nodes.forEach(function(n) {
+        if (n.type !== 'story') return;
+        var edges = data.edges.filter(function(e) { return e.source === n.id; });
+        if (!edges.length) return;
+        var avgScore = edges.reduce(function(sum, e) { return sum + e.score; }, 0) / edges.length;
+        var color = avgScore > 0.2 ? SENTIMENT_COLORS.positive
+                  : avgScore < -0.2 ? SENTIMENT_COLORS.negative
+                  : SENTIMENT_COLORS.neutral;
+        var cyNode = cy.getElementById(n.id);
+        if (cyNode.length) cyNode.style('border-color', color);
+    });
+
+    // Detail panel
+    var detailPanel = document.getElementById('newsmap-detail');
+    var detailContent = document.getElementById('newsmap-detail-content');
+    var detailClose = document.getElementById('newsmap-detail-close');
+
+    function escapeHtml(text) {
+        var div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    function showDetail(meta) {
+        var html = '';
+        if (meta.type === 'ticker') {
+            html += '<h3>' + escapeHtml(meta.label) + '</h3>';
+            if (meta.name) html += '<p class="detail-name">' + escapeHtml(meta.name) + '</p>';
+            html += '<div class="detail-stats">';
+            html += '<div class="detail-stat"><span class="stat-label">Value</span><span class="stat-value">$' + (meta.value || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) + '</span></div>';
+            var changePct = meta.change_pct || 0;
+            var changeClass = changePct >= 0 ? 'positive' : 'negative';
+            html += '<div class="detail-stat ' + changeClass + '"><span class="stat-label">Today</span><span class="stat-value">' + changePct.toFixed(2) + '%</span></div>';
+            html += '</div>';
+
+            // Show connected stories
+            var connectedEdges = data.edges.filter(function(e) { return e.target === meta.id; });
+            if (connectedEdges.length) {
+                html += '<h4>Related Stories</h4><ul class="detail-stories">';
+                connectedEdges.forEach(function(edge) {
+                    var storyNode = data.nodes.find(function(n) { return n.id === edge.source; });
+                    if (storyNode) {
+                        var sentClass = edge.sentiment || 'neutral';
+                        html += '<li class="' + sentClass + '">' + escapeHtml(storyNode.headline || storyNode.label);
+                        if (edge.reason) html += '<br><small>' + escapeHtml(edge.reason) + '</small>';
+                        html += '</li>';
+                    }
+                });
+                html += '</ul>';
+            }
+        } else {
+            html += '<h3>' + escapeHtml(meta.headline || meta.label) + '</h3>';
+            if (meta.summary) html += '<p>' + escapeHtml(meta.summary) + '</p>';
+            if (meta.key_facts && meta.key_facts.length) {
+                html += '<ul class="detail-facts">';
+                meta.key_facts.forEach(function(f) {
+                    html += '<li>' + escapeHtml(f) + '</li>';
+                });
+                html += '</ul>';
+            }
+            html += '<p class="source-count">' + (meta.sources || 0) + ' source(s)</p>';
+
+            // Show sentiment per ticker
+            var storyEdges = data.edges.filter(function(e) { return e.source === meta.id; });
+            if (storyEdges.length) {
+                html += '<h4>Impact on Holdings</h4><ul class="detail-sentiments">';
+                storyEdges.forEach(function(edge) {
+                    var sentClass = edge.sentiment || 'neutral';
+                    html += '<li class="' + sentClass + '"><strong>' + escapeHtml(edge.target.replace('ticker-', '')) + '</strong>';
+                    html += ' <span class="sentiment-badge ' + sentClass + '">' + edge.sentiment + '</span>';
+                    if (edge.reason) html += '<br><small>' + escapeHtml(edge.reason) + '</small>';
+                    html += '</li>';
+                });
+                html += '</ul>';
+            }
+        }
+
+        detailContent.innerHTML = html;
+        detailPanel.classList.remove('hidden');
+    }
+
+    cy.on('tap', 'node', function(evt) {
+        // Remove previous highlights
+        cy.elements().removeClass('highlighted');
+        // Highlight tapped node and its neighborhood
+        var node = evt.target;
+        node.addClass('highlighted');
+        node.neighborhood().addClass('highlighted');
+        showDetail(node.data('_meta'));
+    });
+
+    cy.on('tap', function(evt) {
+        if (evt.target === cy) {
+            detailPanel.classList.add('hidden');
+            cy.elements().removeClass('highlighted');
+        }
+    });
+
+    detailClose.addEventListener('click', function() {
+        detailPanel.classList.add('hidden');
+        cy.elements().removeClass('highlighted');
+    });
+})();
+</script>
+{% endblock %}

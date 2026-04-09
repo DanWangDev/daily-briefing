@@ -1,0 +1,98 @@
+from __future__ import annotations
+
+import logging
+import os
+
+from fastapi import APIRouter, Form, Request
+from fastapi.responses import HTMLResponse, RedirectResponse
+
+logger = logging.getLogger(__name__)
+router = APIRouter()
+
+
+@router.get("/settings", response_class=HTMLResponse)
+async def settings_page(request: Request):
+    config = request.app.state.config
+    templates = request.app.state.templates
+    return templates.TemplateResponse(
+        request=request,
+        name="settings.html",
+        context={"config": config},
+    )
+
+
+@router.post("/api/settings", response_class=HTMLResponse)
+async def update_settings(
+    request: Request,
+    timezone: str = Form("America/New_York"),
+    delivery_time: str = Form("07:00"),
+    email_enabled: bool = Form(False),
+    llm_provider: str = Form("anthropic"),
+    # Per-provider model fields
+    anthropic_model: str = Form("claude-haiku-4-5-20251001"),
+    openai_model: str = Form("gpt-4o-mini"),
+    ollama_model: str = Form("llama3"),
+    # Per-provider config
+    anthropic_api_key: str = Form(""),
+    openai_api_key: str = Form(""),
+    ollama_base_url: str = Form("http://localhost:11434"),
+    # Data source keys
+    newsapi_key: str = Form(""),
+    alpha_vantage_key: str = Form(""),
+    # Email
+    smtp_host: str = Form("smtp.gmail.com"),
+    smtp_port: int = Form(587),
+    from_address: str = Form(""),
+    to_address: str = Form(""),
+    email_user: str = Form(""),
+    email_pass: str = Form(""),
+):
+    config = request.app.state.config
+
+    # Schedule
+    config.schedule.timezone = timezone
+    config.schedule.delivery_time = delivery_time
+    config.schedule.email_enabled = email_enabled
+
+    # LLM - set provider and the model for that provider
+    config.llm.provider = llm_provider
+    model_map = {
+        "anthropic": anthropic_model,
+        "openai": openai_model,
+        "ollama": ollama_model,
+    }
+    config.llm.model = model_map.get(llm_provider, anthropic_model)
+    config.llm.base_url = ollama_base_url if llm_provider == "ollama" else config.llm.base_url
+
+    # LLM API keys (only update if non-empty - blank means keep current)
+    if anthropic_api_key.strip():
+        config.llm.set_api_key("anthropic", anthropic_api_key.strip())
+    if openai_api_key.strip():
+        config.llm.set_api_key("openai", openai_api_key.strip())
+
+    # Data source API keys
+    if newsapi_key.strip():
+        config.api_keys.set_key("newsapi", newsapi_key.strip())
+    if alpha_vantage_key.strip():
+        config.api_keys.set_key("alpha_vantage", alpha_vantage_key.strip())
+
+    # Email
+    config.email.smtp_host = smtp_host
+    config.email.smtp_port = smtp_port
+    config.email.from_address = from_address
+    config.email.to_address = to_address
+
+    # Email credentials (set as env vars in the process for this session)
+    if email_user.strip():
+        os.environ["EMAIL_USER"] = email_user.strip()
+    if email_pass.strip():
+        os.environ["EMAIL_PASS"] = email_pass.strip()
+
+    # Restart scheduler with new settings
+    from briefing.scheduler import reschedule
+    try:
+        reschedule(config)
+    except Exception as e:
+        logger.warning("Failed to reschedule: %s", e)
+
+    return RedirectResponse("/settings", status_code=303)

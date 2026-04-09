@@ -1,0 +1,270 @@
+{% extends "base.html" %}
+{% block title %}Dashboard - Daily Briefing{% endblock %}
+{% block content %}
+<header class="dashboard-header">
+    <div class="dashboard-title">
+        <h1>Daily Briefing</h1>
+        <p class="dashboard-subtitle">Your morning financial snapshot</p>
+    </div>
+    <button class="generate-btn"
+            hx-post="/api/briefings/generate"
+            hx-target="#briefing-content"
+            hx-swap="innerHTML"
+            hx-indicator="#gen-spinner"
+            hx-disabled-elt="this">
+        <span class="btn-icon">&#9889;</span>
+        Generate Now
+        <span id="gen-spinner" class="htmx-indicator" aria-busy="true"></span>
+    </button>
+</header>
+
+<div id="briefing-content">
+{% if briefing %}
+    <div class="briefing-meta">
+        <span class="briefing-date">{{ briefing.market_date.strftime('%A, %B %d, %Y') }}</span>
+        <span class="briefing-time">Generated {{ briefing.generated_at.strftime('%I:%M %p') }}</span>
+        <span class="badge badge-{{ briefing.status }}">{{ briefing.status }}</span>
+    </div>
+
+    {% if briefing.summary_html %}
+        {{ briefing.summary_html|safe }}
+    {% endif %}
+
+    {% for section in sections %}
+        {% set content = section.content_html %}
+        {% if content %}
+        <div class="briefing-section">
+            {{ content|safe }}
+        </div>
+        {% endif %}
+    {% endfor %}
+
+{% else %}
+    <article class="empty-state">
+        <div class="empty-state-icon">&#128200;</div>
+        <h2>No briefings yet</h2>
+        <p>Add some tickers in the <a href="/portfolio">Portfolio</a> page, then click <strong>Generate Now</strong> above to create your first daily briefing.</p>
+    </article>
+{% endif %}
+</div>
+
+<script>
+/**
+ * Dashboard chart initialization.
+ * Progressive enhancement: charts are only drawn when Chart.js is available
+ * and the JSON data blocks exist in the rendered briefing HTML.
+ */
+(function() {
+    'use strict';
+
+    var CHART_COLORS = [
+        '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6',
+        '#06b6d4', '#ec4899', '#14b8a6', '#f97316', '#6366f1',
+        '#84cc16', '#e11d48', '#0ea5e9', '#a855f7', '#22c55e'
+    ];
+
+    function initCharts() {
+        if (typeof Chart === 'undefined') return;
+
+        var chartDataEl = document.getElementById('briefing-chart-data');
+        if (!chartDataEl) return;
+
+        var data;
+        try {
+            data = JSON.parse(chartDataEl.textContent);
+        } catch (e) {
+            return;
+        }
+
+        initAllocationChart(data.allocation);
+        initDayPerformanceChart(data.dayChanges);
+        initNewsInteractivity();
+    }
+
+    function initAllocationChart(allocation) {
+        var canvas = document.getElementById('allocation-chart');
+        if (!canvas || !allocation) return;
+
+        new Chart(canvas, {
+            type: 'doughnut',
+            data: {
+                labels: allocation.labels,
+                datasets: [{
+                    data: allocation.values,
+                    backgroundColor: CHART_COLORS.slice(0, allocation.labels.length),
+                    borderWidth: 2,
+                    borderColor: getComputedStyle(document.documentElement)
+                        .getPropertyValue('--pico-background-color').trim() || '#fff',
+                    hoverBorderWidth: 0,
+                    hoverOffset: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                cutout: '62%',
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 16,
+                            usePointStyle: true,
+                            pointStyleWidth: 10,
+                            font: { size: 12 },
+                            color: getComputedStyle(document.documentElement)
+                                .getPropertyValue('--pico-color').trim() || '#333',
+                            generateLabels: function(chart) {
+                                var dataset = chart.data.datasets[0];
+                                var total = dataset.data.reduce(function(a, b) { return a + b; }, 0);
+                                return chart.data.labels.map(function(label, i) {
+                                    var pct = total > 0
+                                        ? ((dataset.data[i] / total) * 100).toFixed(1)
+                                        : '0.0';
+                                    return {
+                                        text: label + ' (' + pct + '%)',
+                                        fillStyle: dataset.backgroundColor[i],
+                                        strokeStyle: 'transparent',
+                                        pointStyle: 'rectRounded',
+                                        index: i,
+                                        hidden: false
+                                    };
+                                });
+                            }
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(ctx) {
+                                var total = ctx.dataset.data.reduce(function(a, b) { return a + b; }, 0);
+                                var pct = total > 0
+                                    ? ((ctx.parsed / total) * 100).toFixed(1)
+                                    : '0.0';
+                                return ctx.label + ': $' + ctx.parsed.toLocaleString(undefined, {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2
+                                }) + ' (' + pct + '%)';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    function initDayPerformanceChart(dayChanges) {
+        var canvas = document.getElementById('day-performance-chart');
+        if (!canvas || !dayChanges) return;
+
+        var colors = dayChanges.values.map(function(v) {
+            return v >= 0 ? 'rgba(16, 185, 129, 0.8)' : 'rgba(239, 68, 68, 0.8)';
+        });
+        var borderColors = dayChanges.values.map(function(v) {
+            return v >= 0 ? '#10b981' : '#ef4444';
+        });
+
+        new Chart(canvas, {
+            type: 'bar',
+            data: {
+                labels: dayChanges.labels,
+                datasets: [{
+                    label: 'Day Change %',
+                    data: dayChanges.values,
+                    backgroundColor: colors,
+                    borderColor: borderColors,
+                    borderWidth: 1,
+                    borderRadius: 4,
+                    barPercentage: 0.6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        grid: {
+                            color: 'rgba(128, 128, 128, 0.1)'
+                        },
+                        ticks: {
+                            callback: function(val) { return val + '%'; },
+                            color: getComputedStyle(document.documentElement)
+                                .getPropertyValue('--pico-muted-color').trim() || '#666',
+                            font: { size: 11 }
+                        }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: {
+                            color: getComputedStyle(document.documentElement)
+                                .getPropertyValue('--pico-color').trim() || '#333',
+                            font: { size: 12, weight: 'bold' }
+                        }
+                    }
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(ctx) {
+                                return ctx.parsed.y.toFixed(2) + '%';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    function initNewsInteractivity() {
+        // Ticker filter pills
+        var filters = document.querySelectorAll('.ticker-filter');
+        var newsCards = document.querySelectorAll('.news-card');
+
+        filters.forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                var ticker = this.getAttribute('data-ticker');
+
+                filters.forEach(function(f) { f.classList.remove('active'); });
+                this.classList.add('active');
+
+                newsCards.forEach(function(card) {
+                    if (ticker === 'all') {
+                        card.style.display = '';
+                    } else {
+                        var cardTickers = card.getAttribute('data-tickers').split(' ');
+                        card.style.display = cardTickers.indexOf(ticker) >= 0 ? '' : 'none';
+                    }
+                });
+            });
+        });
+
+        // Ticker badges highlight corresponding holding cards
+        var tickerBadges = document.querySelectorAll('.ticker-badge');
+        tickerBadges.forEach(function(badge) {
+            badge.addEventListener('click', function(e) {
+                e.preventDefault();
+                var ticker = this.getAttribute('data-ticker');
+                var holdingCard = document.querySelector('.holding-card[data-ticker="' + ticker + '"]');
+                if (holdingCard) {
+                    holdingCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    holdingCard.classList.add('highlight');
+                    setTimeout(function() {
+                        holdingCard.classList.remove('highlight');
+                    }, 2000);
+                }
+            });
+        });
+    }
+
+    // Initialize on page load
+    initCharts();
+
+    // Re-initialize after htmx swaps in new content
+    document.body.addEventListener('htmx:afterSwap', function(evt) {
+        if (evt.detail.target.id === 'briefing-content') {
+            // Small delay to ensure DOM is ready
+            setTimeout(initCharts, 50);
+        }
+    });
+})();
+</script>
+{% endblock %}

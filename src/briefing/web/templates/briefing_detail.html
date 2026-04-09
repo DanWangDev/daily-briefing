@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Briefing {{ briefing.market_date if briefing else '' }} - Daily Briefing{% endblock %}
+{% block content %}
+{% if briefing %}
+    <h1>Briefing: {{ briefing.market_date }}</h1>
+    <p>
+        Generated {{ briefing.generated_at.strftime('%Y-%m-%d %H:%M') }}
+        <span class="badge badge-{{ briefing.status }}">{{ briefing.status }}</span>
+    </p>
+
+    {% if briefing.summary_html %}
+        {{ briefing.summary_html|safe }}
+    {% endif %}
+
+    {% for section in sections %}
+        {% set content = section.content_html %}
+        {% if content %}
+        <div class="briefing-section">
+            {{ content|safe }}
+        </div>
+        {% endif %}
+    {% endfor %}
+
+    <p><a href="/briefings">&larr; Back to history</a></p>
+{% else %}
+    <h1>Briefing not found</h1>
+    <p><a href="/briefings">&larr; Back to history</a></p>
+{% endif %}
+{% endblock %}

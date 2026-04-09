@@ -1,0 +1,77 @@
+<table class="holdings-table" id="holdings-table">
+    <thead>
+        <tr>
+            <th>Ticker</th>
+            <th>Name</th>
+            <th>Shares</th>
+            <th>Cost Basis</th>
+            <th>Current Price</th>
+            <th>Value</th>
+            <th>Gain/Loss</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for h in holdings %}
+        <tr>
+            <td><strong>{{ h.ticker }}</strong></td>
+            <td>{{ h.name }}</td>
+            <td>{{ "%.2f"|format(h.shares) }}</td>
+            <td>${{ "%.2f"|format(h.cost_basis) }}</td>
+            <td>
+                {% if h.current_price is not none %}
+                    ${{ "%.2f"|format(h.current_price) }}
+                {% else %}
+                    --
+                {% endif %}
+            </td>
+            <td>
+                {% if h.total_value is not none %}
+                    ${{ "{:,.2f}".format(h.total_value) }}
+                {% else %}
+                    --
+                {% endif %}
+            </td>
+            <td>
+                {% if h.gain_loss is not none %}
+                    <span class="{{ 'positive' if h.gain_loss >= 0 else 'negative' }}">
+                        {{ "%+.2f"|format(h.gain_loss_pct) }}%
+                        (${{ "{:,.2f}".format(h.gain_loss) }})
+                    </span>
+                {% else %}
+                    --
+                {% endif %}
+            </td>
+            <td>
+                <button class="outline secondary"
+                        hx-delete="/api/portfolio/{{ h.id }}"
+                        hx-target="#holdings-table"
+                        hx-swap="outerHTML"
+                        hx-confirm="Remove {{ h.ticker }}?">
+                    Remove
+                </button>
+            </td>
+        </tr>
+        {% else %}
+        <tr>
+            <td colspan="8" style="text-align:center;">No holdings yet. Add your first ticker above.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+    {% if holdings %}
+    <tfoot>
+        <tr>
+            <td colspan="5"><strong>Total</strong></td>
+            <td><strong>${{ "{:,.2f}".format(total_value) }}</strong></td>
+            <td>
+                {% if total_gain_loss is not none %}
+                <strong class="{{ 'positive' if total_gain_loss >= 0 else 'negative' }}">
+                    ${{ "{:,.2f}".format(total_gain_loss) }}
+                </strong>
+                {% endif %}
+            </td>
+            <td></td>
+        </tr>
+    </tfoot>
+    {% endif %}
+</table>

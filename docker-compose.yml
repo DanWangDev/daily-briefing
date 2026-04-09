@@ -1,0 +1,20 @@
+services:
+  briefing:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - briefing-data:/app/data
+      - ./config.yaml:/app/config.yaml:ro
+    env_file:
+      - .env
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import httpx; httpx.get('http://localhost:8000/')"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+volumes:
+  briefing-data:

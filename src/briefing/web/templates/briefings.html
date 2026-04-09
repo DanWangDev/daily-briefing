@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Briefing History - Daily Briefing{% endblock %}
+{% block content %}
+<h1>Briefing History</h1>
+
+{% if briefings %}
+<table>
+    <thead>
+        <tr>
+            <th>Date</th>
+            <th>Generated</th>
+            <th>Status</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for b in briefings %}
+        <tr>
+            <td>{{ b.market_date }}</td>
+            <td>{{ b.generated_at.strftime('%Y-%m-%d %H:%M') }}</td>
+            <td><span class="badge badge-{{ b.status }}">{{ b.status }}</span></td>
+            <td><a href="/briefings/{{ b.id }}">View</a></td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<article style="text-align:center; padding:3rem;">
+    <h2>No briefings yet</h2>
+    <p>Go to the <a href="/">Dashboard</a> and click <strong>Generate Now</strong>.</p>
+</article>
+{% endif %}
+{% endblock %}

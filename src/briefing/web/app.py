@@ -1,0 +1,35 @@
+from __future__ import annotations
+
+from pathlib import Path
+
+from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
+
+from briefing.config import AppConfig
+
+WEB_DIR = Path(__file__).parent
+TEMPLATES_DIR = WEB_DIR / "templates"
+STATIC_DIR = WEB_DIR / "static"
+
+
+def create_app(config: AppConfig | None = None) -> FastAPI:
+    app = FastAPI(title="Daily Briefing")
+    app.state.config = config
+
+    app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
+    app.state.templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
+
+    from briefing.web.routes.dashboard import router as dashboard_router
+    from briefing.web.routes.portfolio import router as portfolio_router
+    from briefing.web.routes.briefings import router as briefings_router
+    from briefing.web.routes.settings import router as settings_router
+    from briefing.web.routes.newsmap import router as newsmap_router
+
+    app.include_router(dashboard_router)
+    app.include_router(portfolio_router)
+    app.include_router(briefings_router)
+    app.include_router(settings_router)
+    app.include_router(newsmap_router)
+
+    return app

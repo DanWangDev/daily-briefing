@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}Daily Briefing{% endblock %}</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+    <link rel="stylesheet" href="/static/style.css">
+    <script src="https://unpkg.com/htmx.org@2.0.4"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <nav>
+            <ul>
+                <li><a href="/">Daily Briefing</a></li>
+                <li><a href="/">Dashboard</a></li>
+                <li><a href="/newsmap">News Map</a></li>
+                <li><a href="/portfolio">Portfolio</a></li>
+                <li><a href="/briefings">History</a></li>
+                <li><a href="/settings">Settings</a></li>
+            </ul>
+        </nav>
+
+        <div id="flash-container">
+            {% if flash_message %}
+            <div class="flash flash-{{ flash_type|default('success') }}">{{ flash_message }}</div>
+            {% endif %}
+        </div>
+
+        <main>
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+</body>
+</html>

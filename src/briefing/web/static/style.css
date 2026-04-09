@@ -1,0 +1,1028 @@
+/* ==========================================================================
+   Daily Briefing - Custom styles on top of Pico CSS
+   ========================================================================== */
+
+:root {
+    --pico-font-size: 16px;
+    --db-green: #10b981;
+    --db-green-bg: rgba(16, 185, 129, 0.1);
+    --db-red: #ef4444;
+    --db-red-bg: rgba(239, 68, 68, 0.1);
+    --db-blue: #3b82f6;
+    --db-blue-bg: rgba(59, 130, 246, 0.08);
+    --db-card-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+    --db-card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06);
+    --db-border: 1px solid var(--pico-muted-border-color);
+    --db-radius: 10px;
+    --db-radius-sm: 6px;
+}
+
+/* ==========================================================================
+   Layout
+   ========================================================================== */
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1rem;
+}
+
+/* ==========================================================================
+   Navigation
+   ========================================================================== */
+
+nav {
+    margin-bottom: 1.5rem;
+}
+
+nav ul {
+    list-style: none;
+    padding: 0;
+    display: flex;
+    gap: 1.5rem;
+    align-items: center;
+}
+
+nav ul li:first-child {
+    margin-right: auto;
+}
+
+nav ul li:first-child a {
+    font-weight: 700;
+    font-size: 1.2rem;
+}
+
+nav a {
+    text-decoration: none;
+}
+
+/* ==========================================================================
+   Dashboard Header
+   ========================================================================== */
+
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: var(--db-border);
+}
+
+.dashboard-title h1 {
+    margin-bottom: 0;
+    font-size: 1.75rem;
+    line-height: 1.2;
+}
+
+.dashboard-subtitle {
+    margin: 0.2rem 0 0;
+    color: var(--pico-muted-color);
+    font-size: 0.9rem;
+}
+
+.generate-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.65rem 1.25rem;
+    background: var(--db-blue);
+    color: #fff;
+    border: none;
+    border-radius: var(--db-radius-sm);
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background 0.2s, box-shadow 0.2s;
+    white-space: nowrap;
+}
+
+.generate-btn:hover {
+    background: #2563eb;
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+}
+
+.generate-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.btn-icon {
+    font-size: 1.1rem;
+}
+
+/* ==========================================================================
+   Briefing Meta
+   ========================================================================== */
+
+.briefing-meta {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    font-size: 0.9rem;
+    color: var(--pico-muted-color);
+}
+
+.briefing-date {
+    font-weight: 600;
+    color: var(--pico-color);
+}
+
+/* ==========================================================================
+   Badges
+   ========================================================================== */
+
+.badge {
+    display: inline-block;
+    padding: 0.15rem 0.6rem;
+    border-radius: 1rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.badge-completed { background: var(--db-green-bg); color: var(--db-green); }
+.badge-partial { background: rgba(245, 158, 11, 0.12); color: #d97706; }
+.badge-failed { background: var(--db-red-bg); color: var(--db-red); }
+.badge-pending { background: rgba(128, 128, 128, 0.1); color: #6b7280; }
+
+/* ==========================================================================
+   Color Utilities
+   ========================================================================== */
+
+.positive { color: var(--db-green); }
+.negative { color: var(--db-red); }
+
+/* ==========================================================================
+   Portfolio Hero Section
+   ========================================================================== */
+
+.portfolio-hero {
+    background: var(--pico-card-background-color);
+    border: var(--db-border);
+    border-radius: var(--db-radius);
+    padding: 1.5rem;
+    box-shadow: var(--db-card-shadow);
+}
+
+.portfolio-hero h2 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--pico-muted-color);
+    border-bottom: none;
+    margin-bottom: 1.25rem;
+    padding-bottom: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.hero-grid {
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    gap: 2rem;
+    align-items: center;
+}
+
+@media (max-width: 768px) {
+    .hero-grid {
+        grid-template-columns: 1fr;
+    }
+    .hero-chart {
+        max-width: 280px;
+        margin: 0 auto;
+    }
+}
+
+.hero-metrics {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.metric-primary {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.metric-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--pico-muted-color);
+}
+
+.metric-primary .metric-value {
+    font-size: 2.5rem;
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+}
+
+.metric-row {
+    display: flex;
+    gap: 1rem;
+}
+
+@media (max-width: 480px) {
+    .metric-row {
+        flex-direction: column;
+    }
+}
+
+.metric-card {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    padding: 0.75rem 1rem;
+    border-radius: var(--db-radius-sm);
+    background: var(--pico-card-background-color);
+    border: var(--db-border);
+}
+
+.metric-card.positive {
+    border-left: 3px solid var(--db-green);
+    background: var(--db-green-bg);
+}
+
+.metric-card.negative {
+    border-left: 3px solid var(--db-red);
+    background: var(--db-red-bg);
+}
+
+.metric-card .metric-value {
+    font-size: 1.25rem;
+    font-weight: 700;
+}
+
+.metric-detail {
+    font-size: 0.85rem;
+    opacity: 0.85;
+}
+
+.hero-chart {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.hero-chart canvas {
+    max-width: 100%;
+}
+
+.allocation-fallback {
+    font-size: 0.85rem;
+}
+
+/* ==========================================================================
+   Holdings Grid
+   ========================================================================== */
+
+.holdings-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.holding-card {
+    background: var(--pico-card-background-color);
+    border: var(--db-border);
+    border-radius: var(--db-radius);
+    padding: 1.15rem;
+    box-shadow: var(--db-card-shadow);
+    transition: box-shadow 0.25s, transform 0.25s, border-color 0.25s;
+}
+
+.holding-card:hover {
+    box-shadow: var(--db-card-shadow-hover);
+    transform: translateY(-2px);
+}
+
+.holding-card.highlight {
+    border-color: var(--db-blue);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2), var(--db-card-shadow-hover);
+    animation: pulse-highlight 0.6s ease-out;
+}
+
+@keyframes pulse-highlight {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.02); }
+    100% { transform: scale(1); }
+}
+
+.holding-header {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    margin-bottom: 0.6rem;
+}
+
+.holding-ticker {
+    font-size: 1.1rem;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+}
+
+.holding-name {
+    font-size: 0.8rem;
+    color: var(--pico-muted-color);
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.holding-weight {
+    font-size: 0.75rem;
+    font-weight: 700;
+    background: var(--db-blue-bg);
+    color: var(--db-blue);
+    padding: 0.1rem 0.45rem;
+    border-radius: 1rem;
+}
+
+.holding-price {
+    font-size: 1.65rem;
+    font-weight: 700;
+    margin-bottom: 0.15rem;
+    letter-spacing: -0.01em;
+}
+
+.holding-change {
+    font-size: 0.88rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+}
+
+/* Day range bar */
+.day-range {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.85rem;
+}
+
+.range-label {
+    font-size: 0.7rem;
+    color: var(--pico-muted-color);
+    white-space: nowrap;
+}
+
+.range-bar {
+    flex: 1;
+    height: 4px;
+    background: rgba(128, 128, 128, 0.15);
+    border-radius: 2px;
+    position: relative;
+    overflow: hidden;
+}
+
+.range-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--db-red), var(--db-green));
+    border-radius: 2px;
+    position: relative;
+}
+
+.range-fill::after {
+    content: '';
+    position: absolute;
+    right: -3px;
+    top: -3px;
+    width: 10px;
+    height: 10px;
+    background: var(--pico-color);
+    border-radius: 50%;
+    border: 2px solid var(--pico-card-background-color);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+/* Holdings footer stats */
+.holding-footer {
+    display: flex;
+    justify-content: space-between;
+    padding-top: 0.65rem;
+    border-top: 1px solid rgba(128, 128, 128, 0.1);
+}
+
+.holding-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+}
+
+.stat-label {
+    font-size: 0.72rem;
+    color: var(--pico-muted-color);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.stat-value {
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+/* ==========================================================================
+   Day Performance Bar Chart
+   ========================================================================== */
+
+.day-performance-chart {
+    background: var(--pico-card-background-color);
+    border: var(--db-border);
+    border-radius: var(--db-radius);
+    padding: 1.25rem;
+    margin-top: 1rem;
+    box-shadow: var(--db-card-shadow);
+    height: 220px;
+}
+
+/* ==========================================================================
+   News Section
+   ========================================================================== */
+
+.news-section h2 {
+    border-bottom: 2px solid var(--db-blue);
+    padding-bottom: 0.3rem;
+}
+
+.news-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1.25rem;
+}
+
+.ticker-filter {
+    display: inline-block;
+    padding: 0.3rem 0.85rem;
+    border: 1px solid var(--pico-muted-border-color);
+    border-radius: 2rem;
+    background: transparent;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+    color: var(--pico-color);
+}
+
+.ticker-filter:hover {
+    border-color: var(--db-blue);
+    color: var(--db-blue);
+    background: var(--db-blue-bg);
+}
+
+.ticker-filter.active {
+    background: var(--db-blue);
+    color: #fff;
+    border-color: var(--db-blue);
+}
+
+.news-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.news-card {
+    background: var(--pico-card-background-color);
+    border: var(--db-border);
+    border-radius: var(--db-radius);
+    padding: 1.25rem;
+    box-shadow: var(--db-card-shadow);
+    transition: box-shadow 0.2s, border-color 0.2s;
+}
+
+.news-card:hover {
+    box-shadow: var(--db-card-shadow-hover);
+}
+
+.news-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 0.75rem;
+}
+
+.news-card-header h3 {
+    margin: 0;
+    font-size: 1.05rem;
+    line-height: 1.35;
+    flex: 1;
+}
+
+.ticker-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    flex-shrink: 0;
+}
+
+.ticker-badge {
+    display: inline-block;
+    padding: 0.15rem 0.55rem;
+    border-radius: 1rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-decoration: none;
+    background: var(--db-blue-bg);
+    color: var(--db-blue);
+    border: 1px solid transparent;
+    transition: all 0.15s;
+    cursor: pointer;
+    letter-spacing: 0.03em;
+}
+
+.ticker-badge:hover {
+    background: var(--db-blue);
+    color: #fff;
+    border-color: var(--db-blue);
+}
+
+.news-summary {
+    font-size: 0.92rem;
+    line-height: 1.55;
+    color: var(--pico-color);
+    margin-bottom: 0.5rem;
+}
+
+.news-facts {
+    font-size: 0.88rem;
+    line-height: 1.5;
+    padding-left: 1.25rem;
+    margin-bottom: 0.75rem;
+    color: var(--pico-color);
+}
+
+.news-facts li {
+    margin-bottom: 0.3rem;
+}
+
+.bias-analysis {
+    font-size: 0.85rem;
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
+    padding: 0.6rem 0.85rem;
+    border-left: 3px solid var(--db-blue);
+    background: var(--db-blue-bg);
+    border-radius: 0 var(--db-radius-sm) var(--db-radius-sm) 0;
+    color: var(--pico-color);
+}
+
+.news-sources {
+    font-size: 0.8rem;
+    color: var(--pico-muted-color);
+    margin-top: 0.5rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid rgba(128, 128, 128, 0.1);
+}
+
+.news-sources a {
+    color: var(--db-blue);
+    text-decoration: none;
+}
+
+.news-sources a:hover {
+    text-decoration: underline;
+}
+
+/* ==========================================================================
+   SEC Filings Timeline
+   ========================================================================== */
+
+.filings-section h2 {
+    border-bottom: 2px solid #8b5cf6;
+    padding-bottom: 0.3rem;
+}
+
+.filings-timeline {
+    position: relative;
+    padding-left: 2rem;
+}
+
+.filings-timeline::before {
+    content: '';
+    position: absolute;
+    left: 8px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: linear-gradient(to bottom, #8b5cf6, rgba(139, 92, 246, 0.2));
+}
+
+.filing-item {
+    position: relative;
+    padding-bottom: 1.25rem;
+}
+
+.filing-item:last-child {
+    padding-bottom: 0;
+}
+
+.filing-marker {
+    position: absolute;
+    left: -2rem;
+    top: 0.35rem;
+    width: 14px;
+    height: 14px;
+    background: #8b5cf6;
+    border: 3px solid var(--pico-background-color);
+    border-radius: 50%;
+    box-shadow: 0 0 0 2px #8b5cf6;
+    z-index: 1;
+}
+
+.filing-content {
+    background: var(--pico-card-background-color);
+    border: var(--db-border);
+    border-radius: var(--db-radius);
+    padding: 1rem 1.15rem;
+    box-shadow: var(--db-card-shadow);
+}
+
+.filing-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.35rem;
+    flex-wrap: wrap;
+}
+
+.filing-type {
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: #8b5cf6;
+    text-decoration: none;
+}
+
+.filing-type:hover {
+    text-decoration: underline;
+}
+
+.filing-date {
+    font-size: 0.8rem;
+    color: var(--pico-muted-color);
+    margin-left: auto;
+}
+
+.filing-summary {
+    font-size: 0.88rem;
+    line-height: 1.5;
+    margin: 0.25rem 0 0;
+    color: var(--pico-color);
+}
+
+/* ==========================================================================
+   Briefing Section (general)
+   ========================================================================== */
+
+.briefing-section {
+    margin-bottom: 2rem;
+}
+
+.briefing-section h2 {
+    font-size: 1.15rem;
+    margin-bottom: 1rem;
+}
+
+/* ==========================================================================
+   Empty State
+   ========================================================================== */
+
+.empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    background: var(--pico-card-background-color);
+    border: var(--db-border);
+    border-radius: var(--db-radius);
+}
+
+.empty-state-icon {
+    font-size: 3.5rem;
+    margin-bottom: 1rem;
+    line-height: 1;
+}
+
+.empty-state h2 {
+    margin-bottom: 0.5rem;
+    border-bottom: none;
+}
+
+.empty-state p {
+    color: var(--pico-muted-color);
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+/* ==========================================================================
+   Portfolio Table (used on /portfolio page)
+   ========================================================================== */
+
+.holdings-table {
+    width: 100%;
+}
+
+.holdings-table td, .holdings-table th {
+    padding: 0.5rem 0.75rem;
+}
+
+/* ==========================================================================
+   Legacy Card Grid (backwards compat for old briefings/email)
+   ========================================================================== */
+
+.card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.card {
+    border: var(--db-border);
+    border-radius: var(--db-radius);
+    padding: 1rem;
+}
+
+.card h3 {
+    margin-bottom: 0.5rem;
+    font-size: 1rem;
+}
+
+.card .price {
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.card .change {
+    font-size: 0.9rem;
+}
+
+/* Legacy news story (in case old HTML is rendered) */
+.news-story {
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background: var(--pico-card-background-color);
+    border-radius: var(--db-radius);
+    border: var(--db-border);
+}
+
+.news-story .sources {
+    font-size: 0.85rem;
+    color: var(--pico-muted-color);
+}
+
+/* ==========================================================================
+   Form Layout
+   ========================================================================== */
+
+.form-row {
+    display: flex;
+    gap: 1rem;
+    align-items: end;
+}
+
+.form-row > * {
+    flex: 1;
+}
+
+/* ==========================================================================
+   HTMX Spinner
+   ========================================================================== */
+
+.htmx-indicator {
+    display: none;
+}
+
+.htmx-request .htmx-indicator,
+.htmx-request.htmx-indicator {
+    display: inline-block;
+}
+
+/* ==========================================================================
+   Settings - provider toggle
+   ========================================================================== */
+
+.llm-config-section {
+    margin-top: 0.75rem;
+    padding: 0.75rem;
+    border: 1px solid var(--pico-muted-border-color);
+    border-radius: var(--pico-border-radius);
+}
+
+/* ==========================================================================
+   Flash Messages
+   ========================================================================== */
+
+.flash {
+    padding: 0.75rem 1rem;
+    border-radius: var(--db-radius-sm);
+    margin-bottom: 1rem;
+}
+
+.flash-success { background: var(--db-green-bg); color: var(--db-green); }
+.flash-error { background: var(--db-red-bg); color: var(--db-red); }
+
+/* ==========================================================================
+   News Map
+   ========================================================================== */
+
+.newsmap-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.newsmap-title h1 { margin-bottom: 0; }
+
+.newsmap-subtitle {
+    margin-top: 0.25rem;
+    color: var(--pico-muted-color);
+    font-size: 0.9rem;
+}
+
+.newsmap-container {
+    display: flex;
+    gap: 1rem;
+    min-height: 520px;
+}
+
+.newsmap-graph {
+    flex: 1;
+    border: var(--db-border);
+    border-radius: var(--db-radius);
+    background: var(--pico-background-color);
+    min-height: 520px;
+}
+
+/* Detail side panel */
+.newsmap-detail {
+    width: 320px;
+    min-width: 320px;
+    flex-shrink: 0;
+    padding: 1.25rem;
+    border: var(--db-border);
+    border-radius: var(--db-radius);
+    overflow-y: auto;
+    max-height: 520px;
+    background: var(--pico-background-color);
+    box-shadow: var(--db-card-shadow);
+    position: relative;
+}
+
+.newsmap-detail.hidden { display: none; }
+
+.newsmap-detail h3 {
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+    padding-right: 1.5rem;
+}
+
+.newsmap-detail h4 {
+    font-size: 0.85rem;
+    margin-top: 1rem;
+    margin-bottom: 0.4rem;
+    color: var(--pico-muted-color);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.detail-close {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.75rem;
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: var(--pico-muted-color);
+    padding: 0.25rem;
+    line-height: 1;
+    width: auto;
+}
+
+.detail-close:hover { color: var(--pico-color); }
+
+.detail-name {
+    color: var(--pico-muted-color);
+    font-size: 0.85rem;
+    margin-bottom: 0.75rem;
+}
+
+.detail-stats {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 0.75rem;
+}
+
+.detail-stat {
+    display: flex;
+    flex-direction: column;
+}
+
+.detail-stat .stat-label {
+    font-size: 0.75rem;
+    color: var(--pico-muted-color);
+    text-transform: uppercase;
+}
+
+.detail-stat .stat-value {
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.detail-stat.positive .stat-value { color: var(--db-green); }
+.detail-stat.negative .stat-value { color: var(--db-red); }
+
+.detail-stories,
+.detail-facts,
+.detail-sentiments {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.detail-stories li,
+.detail-sentiments li {
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--pico-muted-border-color);
+    font-size: 0.85rem;
+}
+
+.detail-stories li:last-child,
+.detail-sentiments li:last-child { border-bottom: none; }
+
+.detail-stories li.positive,
+.detail-sentiments li.positive { border-left: 3px solid var(--db-green); padding-left: 0.5rem; }
+.detail-stories li.negative,
+.detail-sentiments li.negative { border-left: 3px solid var(--db-red); padding-left: 0.5rem; }
+.detail-stories li.neutral,
+.detail-sentiments li.neutral { border-left: 3px solid #6b7280; padding-left: 0.5rem; }
+
+.detail-facts li {
+    padding: 0.3rem 0;
+    font-size: 0.85rem;
+    list-style: disc inside;
+}
+
+.sentiment-badge {
+    display: inline-block;
+    padding: 0.1rem 0.4rem;
+    border-radius: 3px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.sentiment-badge.positive { background: var(--db-green-bg); color: var(--db-green); }
+.sentiment-badge.negative { background: var(--db-red-bg); color: var(--db-red); }
+.sentiment-badge.neutral { background: rgba(107, 114, 128, 0.1); color: #6b7280; }
+
+.source-count {
+    font-size: 0.8rem;
+    color: var(--pico-muted-color);
+    margin-top: 0.5rem;
+}
+
+/* Legend */
+.newsmap-legend {
+    display: flex;
+    gap: 1.5rem;
+    margin-top: 1rem;
+    font-size: 0.85rem;
+    flex-wrap: wrap;
+}
+
+.legend-item.positive { color: var(--db-green); }
+.legend-item.negative { color: var(--db-red); }
+.legend-item.neutral { color: #6b7280; }
+.legend-item.ticker-node { color: var(--db-blue); }
+
+/* Fallback */
+.newsmap-fallback {
+    padding: 2rem;
+    text-align: center;
+    color: var(--pico-muted-color);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .newsmap-container {
+        flex-direction: column;
+    }
+    .newsmap-detail {
+        width: 100%;
+        max-height: 280px;
+    }
+    .newsmap-graph {
+        min-height: 360px;
+    }
+}
