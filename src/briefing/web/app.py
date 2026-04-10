@@ -7,6 +7,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 from briefing.config import AppConfig
+from briefing.web.i18n import get_translator
 
 WEB_DIR = Path(__file__).parent
 TEMPLATES_DIR = WEB_DIR / "templates"
@@ -19,6 +20,11 @@ def create_app(config: AppConfig | None = None) -> FastAPI:
 
     app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
     app.state.templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
+
+    # i18n — inject _() translator and current_lang into all templates
+    lang = config.language if config else "en"
+    app.state.templates.env.globals["_"] = get_translator(lang)
+    app.state.templates.env.globals["current_lang"] = lang
 
     from briefing.web.routes.dashboard import router as dashboard_router
     from briefing.web.routes.portfolio import router as portfolio_router

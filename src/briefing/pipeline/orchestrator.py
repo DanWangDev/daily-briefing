@@ -77,8 +77,8 @@ async def run_briefing(config: AppConfig) -> int:
 
         # Step 5: Process news and filings (can run in parallel)
         neutralized_stories, filing_summaries = await asyncio.gather(
-            neutralize_news(all_news, llm_provider),
-            summarize_filings(all_filings, llm_provider),
+            neutralize_news(all_news, llm_provider, locale=config.language),
+            summarize_filings(all_filings, llm_provider, locale=config.language),
         )
 
         # Step 6: Render and store sections
@@ -96,6 +96,7 @@ async def run_briefing(config: AppConfig) -> int:
             holdings_data=holdings_data,
             neutralized_stories=neutralized_stories,
             filing_summaries=filing_summaries,
+            lang=config.language,
         )
 
         # Step 8: Update briefing status

@@ -71,6 +71,7 @@ def save_settings(session: Session, config: AppConfig) -> None:
     pairs: list[tuple[str, str, bool]] = []
 
     # Plain settings
+    pairs.append(("ui.language", config.language, False))
     pairs.append(("schedule.timezone", config.schedule.timezone, False))
     pairs.append(("schedule.delivery_time", config.schedule.delivery_time, False))
     pairs.append(("schedule.email_enabled", str(config.schedule.email_enabled), False))
@@ -123,6 +124,10 @@ def load_settings(session: Session, config: AppConfig) -> None:
                 logger.warning("Failed to decrypt setting %s — skipping", key)
                 return None
         return row.value
+
+    # Language
+    if v := _get("ui.language"):
+        config.language = v
 
     # Schedule
     if v := _get("schedule.timezone"):

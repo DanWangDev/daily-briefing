@@ -6,11 +6,20 @@ from datetime import date
 from briefing.schemas import NeutralizedStory, TickerQuote
 
 
+def _tts_button(label: str = "Read aloud") -> str:
+    """Small speaker icon button for text-to-speech."""
+    return (
+        f'<button class="tts-btn" type="button" aria-label="{label}" '
+        f'title="{label}">\U0001f509</button>'
+    )
+
+
 def render_briefing_html(
     market_data: dict[str, TickerQuote],
     holdings_data: list[dict],
     neutralized_stories: list[NeutralizedStory],
     filing_summaries: list[dict],
+    lang: str = "en",
 ) -> str:
     """Render a complete briefing as HTML.
 
@@ -19,6 +28,10 @@ def render_briefing_html(
     Chart.js data is embedded in script[type=application/json] blocks
     that the dashboard JS picks up for interactive visualization.
     """
+    from briefing.web.i18n import get_translator
+    _ = get_translator(lang)
+    tts_label = _("tts.play")
+
     parts: list[str] = []
 
     # -- Compute portfolio metrics -------------------------------------------
@@ -97,23 +110,24 @@ def render_briefing_html(
     gain_arrow = "\u25b2" if total_gain >= 0 else "\u25bc"
 
     parts.append('<section class="briefing-section portfolio-hero">')
-    parts.append(f'<h2>Portfolio Summary &mdash; {date.today().strftime("%B %d, %Y")}</h2>')
+    date_fmt = date.today().strftime("%Y\u5e74%m\u6708%d\u65e5") if lang == "zh" else date.today().strftime("%B %d, %Y")
+    parts.append(f'<h2>{_("renderer.portfolio_summary")} &mdash; {date_fmt} {_tts_button(tts_label)}</h2>')
     parts.append('<div class="hero-grid">')
 
     # Left: Key metrics
     parts.append('<div class="hero-metrics">')
     parts.append(f'<div class="metric-primary">')
-    parts.append(f'<span class="metric-label">Total Value</span>')
+    parts.append(f'<span class="metric-label">{_("renderer.total_value")}</span>')
     parts.append(f'<span class="metric-value">${total_value:,.2f}</span>')
     parts.append(f'</div>')
     parts.append(f'<div class="metric-row">')
     parts.append(f'<div class="metric-card {day_class}">')
-    parts.append(f'<span class="metric-label">Today</span>')
+    parts.append(f'<span class="metric-label">{_("renderer.today")}</span>')
     parts.append(f'<span class="metric-value">{day_arrow} ${abs(total_day_change):,.2f}</span>')
     parts.append(f'<span class="metric-detail">({day_change_pct:+.2f}%)</span>')
     parts.append(f'</div>')
     parts.append(f'<div class="metric-card {gain_class}">')
-    parts.append(f'<span class="metric-label">Total P&amp;L</span>')
+    parts.append(f'<span class="metric-label">{_("renderer.total_pl")}</span>')
     parts.append(f'<span class="metric-value">{gain_arrow} ${abs(total_gain):,.2f}</span>')
     parts.append(f'<span class="metric-detail">({total_gain_pct:+.2f}%)</span>')
     parts.append(f'</div>')
@@ -143,7 +157,7 @@ def render_briefing_html(
     # SECTION 2: Holdings Cards
     # ========================================================================
     parts.append('<section class="briefing-section">')
-    parts.append('<h2>Holdings</h2>')
+    parts.append(f'<h2>{_("renderer.holdings")} {_tts_button(tts_label)}</h2>')
     parts.append('<div class="holdings-grid">')
 
     for h in holdings_enriched:
@@ -187,7 +201,7 @@ def render_briefing_html(
         parts.append(f'<span class="stat-value">${h["value"]:,.2f}</span>')
         parts.append(f'</div>')
         parts.append(f'<div class="holding-stat {gain_class}">')
-        parts.append(f'<span class="stat-label">P&amp;L</span>')
+        parts.append(f'<span class="stat-label">{_("renderer.pl")}</span>')
         parts.append(f'<span class="stat-value">{gain_arrow_h} ${abs(h["gain"]):,.2f} ({h["gain_pct"]:+.2f}%)</span>')
         parts.append(f'</div>')
         parts.append(f'</div>')
@@ -233,7 +247,7 @@ def render_briefing_html(
         )
 
         parts.append('<section class="briefing-section news-section">')
-        parts.append('<h2>News &amp; Analysis</h2>')
+        parts.append(f'<h2>{_("renderer.news_analysis")} {_tts_button(tts_label)}</h2>')
 
         # Ticker filter pills
         all_news_tickers = sorted({t for s in neutralized_stories for t in s.related_tickers})
@@ -304,7 +318,7 @@ def render_briefing_html(
     # ========================================================================
     if filing_summaries:
         parts.append('<section class="briefing-section filings-section">')
-        parts.append('<h2>SEC Filings</h2>')
+        parts.append(f'<h2>{_("renderer.sec_filings")} {_tts_button(tts_label)}</h2>')
         parts.append('<div class="filings-timeline">')
 
         for f in filing_summaries:

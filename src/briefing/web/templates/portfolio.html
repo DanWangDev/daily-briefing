@@ -1,31 +1,31 @@
 {% extends "base.html" %}
-{% block title %}Portfolio - Daily Briefing{% endblock %}
+{% block title %}{{ _("nav.portfolio") }} - {{ _("app.title") }}{% endblock %}
 {% block content %}
-<h1>Portfolio</h1>
+<h1>{{ _("portfolio.title") }}</h1>
 
 <section>
-    <h2>Add Holding</h2>
+    <h2>{{ _("portfolio.add_holding") }}</h2>
     <form hx-post="/api/portfolio" hx-target="#holdings-table" hx-swap="outerHTML" hx-on::after-request="if(event.detail.successful) this.reset()">
         <div class="form-row">
             <label>
-                Ticker
+                {{ _("portfolio.ticker") }}
                 <input type="text" name="ticker" placeholder="AAPL" required maxlength="10" style="text-transform:uppercase">
             </label>
             <label>
-                Shares
+                {{ _("portfolio.shares") }}
                 <input type="number" name="shares" placeholder="100" required step="0.01" min="0.01">
             </label>
             <label>
-                Cost Basis (per share)
+                {{ _("portfolio.cost_basis") }}
                 <input type="number" name="cost_basis" placeholder="150.00" required step="0.01" min="0">
             </label>
-            <button type="submit">Add</button>
+            <button type="submit">{{ _("portfolio.add") }}</button>
         </div>
     </form>
 </section>
 
 <section>
-    <h2>Holdings</h2>
+    <h2>{{ _("portfolio.holdings") }}</h2>
     <div id="holdings-table">
         {% include "partials/holdings_table.html" %}
     </div>

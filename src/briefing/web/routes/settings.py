@@ -26,6 +26,7 @@ async def settings_page(request: Request):
 @router.post("/api/settings", response_class=HTMLResponse)
 async def update_settings(
     request: Request,
+    language: str = Form("en"),
     timezone: str = Form("America/New_York"),
     delivery_time: str = Form("07:00"),
     email_enabled: bool = Form(False),
@@ -53,6 +54,9 @@ async def update_settings(
     email_pass: str = Form(""),
 ):
     config = request.app.state.config
+
+    # Language
+    config.language = language
 
     # Schedule
     config.schedule.timezone = timezone
@@ -110,5 +114,11 @@ async def update_settings(
         reschedule(config)
     except Exception as e:
         logger.warning("Failed to reschedule: %s", e)
+
+    # Refresh i18n translator
+    from briefing.web.i18n import get_translator, load_translations
+    load_translations.cache_clear()
+    request.app.state.templates.env.globals["_"] = get_translator(config.language)
+    request.app.state.templates.env.globals["current_lang"] = config.language
 
     return RedirectResponse("/settings", status_code=303)

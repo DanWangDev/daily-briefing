@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}News Map - Daily Briefing{% endblock %}
+{% block title %}{{ _("newsmap.title") }} - {{ _("app.title") }}{% endblock %}
 {% block body_class %}nm-page{% endblock %}
 {% block container_class %}nm-page-container{% endblock %}
 {% block nav_class %}nm-page-nav{% endblock %}
@@ -10,18 +10,18 @@
     {# -- Overlay top bar -------------------------------------------------- #}
     <header class="nm-topbar">
         <div class="nm-topbar-left">
-            <a href="/" class="nm-logo">Daily Briefing</a>
+            <a href="/" class="nm-logo">{{ _("app.title") }}</a>
             <span class="nm-sep"></span>
-            <span class="nm-page-title">News Map</span>
+            <span class="nm-page-title">{{ _("newsmap.title") }}</span>
         </div>
         {% if briefing %}
         <span class="nm-date">{{ briefing.market_date.strftime('%b %d, %Y') }}</span>
         {% endif %}
         <nav class="nm-nav">
-            <a href="/">Dashboard</a>
-            <a href="/portfolio">Portfolio</a>
-            <a href="/briefings">History</a>
-            <a href="/settings">Settings</a>
+            <a href="/">{{ _("nav.dashboard") }}</a>
+            <a href="/portfolio">{{ _("nav.portfolio") }}</a>
+            <a href="/briefings">{{ _("nav.history") }}</a>
+            <a href="/settings">{{ _("nav.settings") }}</a>
         </nav>
     </header>
 
@@ -33,34 +33,34 @@
     {# -- Floating legend (bottom-left) ------------------------------------ #}
     <div class="nm-legend">
         <span class="nm-legend-item" data-sentiment="positive">
-            <span class="nm-dot nm-dot--positive"></span> Positive
+            <span class="nm-dot nm-dot--positive"></span> {{ _("newsmap.positive") }}
         </span>
         <span class="nm-legend-item" data-sentiment="neutral">
-            <span class="nm-dot nm-dot--neutral"></span> Neutral
+            <span class="nm-dot nm-dot--neutral"></span> {{ _("newsmap.neutral") }}
         </span>
         <span class="nm-legend-item" data-sentiment="negative">
-            <span class="nm-dot nm-dot--negative"></span> Negative
+            <span class="nm-dot nm-dot--negative"></span> {{ _("newsmap.negative") }}
         </span>
         <span class="nm-legend-item">
-            <span class="nm-dot nm-dot--ticker"></span> Holdings
+            <span class="nm-dot nm-dot--ticker"></span> {{ _("newsmap.holdings") }}
         </span>
         <span class="nm-legend-item">
-            <span class="nm-dot nm-dot--macro"></span> Macro
+            <span class="nm-dot nm-dot--macro"></span> {{ _("newsmap.macro") }}
         </span>
     </div>
 
     {# -- Floating controls (bottom-right) --------------------------------- #}
     <div class="nm-controls">
-        <button id="nm-zoom-in" class="nm-ctrl-btn" aria-label="Zoom in" title="Zoom in">+</button>
-        <button id="nm-zoom-out" class="nm-ctrl-btn" aria-label="Zoom out" title="Zoom out">&minus;</button>
-        <button id="nm-fit" class="nm-ctrl-btn" aria-label="Fit to screen" title="Fit to screen">
+        <button id="nm-zoom-in" class="nm-ctrl-btn" aria-label="{{ _('newsmap.zoom_in') }}" title="{{ _('newsmap.zoom_in') }}">+</button>
+        <button id="nm-zoom-out" class="nm-ctrl-btn" aria-label="{{ _('newsmap.zoom_out') }}" title="{{ _('newsmap.zoom_out') }}">&minus;</button>
+        <button id="nm-fit" class="nm-ctrl-btn" aria-label="{{ _('newsmap.fit') }}" title="{{ _('newsmap.fit') }}">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3"/></svg>
         </button>
     </div>
 
     {# -- Slide-out detail sidebar ----------------------------------------- #}
     <aside id="nm-detail" class="nm-detail">
-        <button id="nm-detail-close" class="nm-detail-close" aria-label="Close panel">&times;</button>
+        <button id="nm-detail-close" class="nm-detail-close" aria-label="{{ _('newsmap.close_panel') }}">&times;</button>
         <div id="nm-detail-content"></div>
     </aside>
 
@@ -74,8 +74,8 @@
 
     <noscript>
         <div class="nm-noscript">
-            <h2>News Map requires JavaScript</h2>
-            <p>View the <a href="/">Dashboard</a> for a non-interactive briefing.</p>
+            <h2>{{ _("newsmap.requires_js") }}</h2>
+            <p>{{ _("newsmap.requires_js_text") }}</p>
         </div>
     </noscript>
 
@@ -84,8 +84,8 @@
         <div class="nm-empty-icon">
             <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/></svg>
         </div>
-        <h2>No briefing data</h2>
-        <p>Generate a briefing from the <a href="/">Dashboard</a> first.</p>
+        <h2>{{ _("newsmap.no_data") }}</h2>
+        <p>{{ _("newsmap.no_data_text") }}</p>
     </div>
     {% endif %}
 
@@ -289,15 +289,16 @@
     }
 
     function openPanel(meta) {
+        var i18n = window.__i18n;
         var html = '';
         if (meta.type === 'market') {
-            html += '<div class="nm-detail-type" style="color:#F59E0B">MACRO & GEOPOLITICAL</div>';
-            html += '<h3>Market-Wide Events</h3>';
-            html += '<p class="nm-detail-summary">News affecting the broader market and economy.</p>';
+            html += '<div class="nm-detail-type" style="color:#F59E0B">' + esc(i18n['newsmap.type_macro']) + '</div>';
+            html += '<h3>' + esc(i18n['newsmap.market_events']) + '</h3>';
+            html += '<p class="nm-detail-summary">' + esc(i18n['newsmap.market_desc']) + '</p>';
 
             var macroEdges = data.edges.filter(function(e) { return e.target === 'ticker-MARKET'; });
             if (macroEdges.length) {
-                html += '<div class="nm-detail-section-label">' + macroEdges.length + ' Macro Stories</div>';
+                html += '<div class="nm-detail-section-label">' + esc(i18n['newsmap.macro_stories'].replace('{count}', macroEdges.length)) + '</div>';
                 html += '<ul class="nm-detail-list">';
                 macroEdges.forEach(function(edge) {
                     var story = data.nodes.find(function(n) { return n.id === edge.source; });
@@ -311,19 +312,19 @@
                 html += '</ul>';
             }
         } else if (meta.type === 'ticker') {
-            html += '<div class="nm-detail-type">HOLDING</div>';
+            html += '<div class="nm-detail-type">' + esc(i18n['newsmap.type_holding']) + '</div>';
             html += '<h3>' + esc(meta.label) + '</h3>';
             if (meta.name) html += '<p class="nm-detail-name">' + esc(meta.name) + '</p>';
             html += '<div class="nm-detail-metrics">';
-            html += '<div class="nm-metric"><span class="nm-metric-label">Value</span><span class="nm-metric-value">$' + (meta.value || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) + '</span></div>';
+            html += '<div class="nm-metric"><span class="nm-metric-label">' + esc(i18n['newsmap.value']) + '</span><span class="nm-metric-value">$' + (meta.value || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) + '</span></div>';
             var pct = meta.change_pct || 0;
             var cls = pct >= 0 ? 'positive' : 'negative';
-            html += '<div class="nm-metric nm-metric--' + cls + '"><span class="nm-metric-label">Today</span><span class="nm-metric-value">' + (pct >= 0 ? '+' : '') + pct.toFixed(2) + '%</span></div>';
+            html += '<div class="nm-metric nm-metric--' + cls + '"><span class="nm-metric-label">' + esc(i18n['newsmap.today']) + '</span><span class="nm-metric-value">' + (pct >= 0 ? '+' : '') + pct.toFixed(2) + '%</span></div>';
             html += '</div>';
 
             var connected = data.edges.filter(function(e) { return e.target === meta.id; });
             if (connected.length) {
-                html += '<div class="nm-detail-section-label">Related Stories</div>';
+                html += '<div class="nm-detail-section-label">' + esc(i18n['newsmap.related_stories']) + '</div>';
                 html += '<ul class="nm-detail-list">';
                 connected.forEach(function(edge) {
                     var story = data.nodes.find(function(n) { return n.id === edge.source; });
@@ -337,20 +338,20 @@
                 html += '</ul>';
             }
         } else {
-            html += '<div class="nm-detail-type">NEWS</div>';
+            html += '<div class="nm-detail-type">' + esc(i18n['newsmap.type_news']) + '</div>';
             html += '<h3>' + esc(meta.headline || meta.label) + '</h3>';
             if (meta.summary) html += '<p class="nm-detail-summary">' + esc(meta.summary) + '</p>';
             if (meta.key_facts && meta.key_facts.length) {
-                html += '<div class="nm-detail-section-label">Key Facts</div>';
+                html += '<div class="nm-detail-section-label">' + esc(i18n['newsmap.key_facts']) + '</div>';
                 html += '<ul class="nm-detail-facts">';
                 meta.key_facts.forEach(function(f) { html += '<li>' + esc(f) + '</li>'; });
                 html += '</ul>';
             }
-            html += '<div class="nm-detail-meta">' + (meta.sources || 0) + ' source(s)</div>';
+            html += '<div class="nm-detail-meta">' + esc(i18n['newsmap.sources'].replace('{count}', meta.sources || 0)) + '</div>';
 
             var storyEdges = data.edges.filter(function(e) { return e.source === meta.id; });
             if (storyEdges.length) {
-                html += '<div class="nm-detail-section-label">Impact on Holdings</div>';
+                html += '<div class="nm-detail-section-label">' + esc(i18n['newsmap.impact']) + '</div>';
                 html += '<ul class="nm-detail-list">';
                 storyEdges.forEach(function(edge) {
                     html += '<li class="nm-detail-list-item nm-sent--' + (edge.sentiment || 'neutral') + '">';

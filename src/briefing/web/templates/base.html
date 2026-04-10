@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="{{ current_lang }}" data-theme="light">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{% block title %}Daily Briefing{% endblock %}</title>
+    <title>{% block title %}{{ _("app.title") }}{% endblock %}</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
-    <link rel="stylesheet" href="/static/style.css?v=4">
+    <link rel="stylesheet" href="/static/style.css?v=5">
     <script src="https://unpkg.com/htmx.org@2.0.4"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
 </head>
@@ -13,12 +13,12 @@
     <div class="container {% block container_class %}{% endblock %}">
         <nav class="{% block nav_class %}{% endblock %}">
             <ul>
-                <li><a href="/">Daily Briefing</a></li>
-                <li><a href="/">Dashboard</a></li>
-                <li><a href="/newsmap">News Map</a></li>
-                <li><a href="/portfolio">Portfolio</a></li>
-                <li><a href="/briefings">History</a></li>
-                <li><a href="/settings">Settings</a></li>
+                <li><a href="/">{{ _("app.title") }}</a></li>
+                <li><a href="/">{{ _("nav.dashboard") }}</a></li>
+                <li><a href="/newsmap">{{ _("nav.newsmap") }}</a></li>
+                <li><a href="/portfolio">{{ _("nav.portfolio") }}</a></li>
+                <li><a href="/briefings">{{ _("nav.history") }}</a></li>
+                <li><a href="/settings">{{ _("nav.settings") }}</a></li>
             </ul>
         </nav>
 
@@ -35,6 +35,29 @@
 
     <div id="toast-container"></div>
     <script>
+    window.__i18n = {
+        "toast.ready_title": {{ _("toast.ready_title")|tojson }},
+        "toast.ready_text": {{ _("toast.ready_text")|tojson }},
+        "toast.failed_title": {{ _("toast.failed_title")|tojson }},
+        "toast.failed_text": {{ _("toast.failed_text")|tojson }},
+        "toast.view_now": {{ _("toast.view_now")|tojson }},
+        "tts.play": {{ _("tts.play")|tojson }},
+        "tts.stop": {{ _("tts.stop")|tojson }},
+        "newsmap.type_macro": {{ _("newsmap.type_macro")|tojson }},
+        "newsmap.market_events": {{ _("newsmap.market_events")|tojson }},
+        "newsmap.market_desc": {{ _("newsmap.market_desc")|tojson }},
+        "newsmap.macro_stories": {{ _("newsmap.macro_stories")|tojson }},
+        "newsmap.type_holding": {{ _("newsmap.type_holding")|tojson }},
+        "newsmap.type_news": {{ _("newsmap.type_news")|tojson }},
+        "newsmap.value": {{ _("newsmap.value")|tojson }},
+        "newsmap.today": {{ _("newsmap.today")|tojson }},
+        "newsmap.related_stories": {{ _("newsmap.related_stories")|tojson }},
+        "newsmap.key_facts": {{ _("newsmap.key_facts")|tojson }},
+        "newsmap.sources": {{ _("newsmap.sources")|tojson }},
+        "newsmap.impact": {{ _("newsmap.impact")|tojson }}
+    };
+    </script>
+    <script>
     (function() {
         if (!localStorage.getItem('generating')) return;
         var check = setInterval(function() {
@@ -47,9 +70,9 @@
                     var container = document.getElementById('toast-container');
                     var toast = document.createElement('div');
                     toast.className = 'toast toast--' + (ok ? 'success' : 'error');
-                    toast.innerHTML = '<strong>' + (ok ? 'Briefing ready!' : 'Generation failed') + '</strong>'
-                        + '<p>' + (ok ? 'Your daily briefing has been generated.' : 'Check server logs for details.') + '</p>'
-                        + (ok ? '<a href="/" class="toast-action">View now</a>' : '');
+                    toast.innerHTML = '<strong>' + (ok ? window.__i18n['toast.ready_title'] : window.__i18n['toast.failed_title']) + '</strong>'
+                        + '<p>' + (ok ? window.__i18n['toast.ready_text'] : window.__i18n['toast.failed_text']) + '</p>'
+                        + (ok ? '<a href="/" class="toast-action">' + window.__i18n['toast.view_now'] + '</a>' : '');
                     container.appendChild(toast);
                     requestAnimationFrame(function() { toast.classList.add('toast--visible'); });
                     setTimeout(function() {
@@ -62,5 +85,6 @@
         }, 3000);
     })();
     </script>
+    <script src="/static/tts.js?v=1"></script>
 </body>
 </html>

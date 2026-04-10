@@ -943,6 +943,50 @@ nav a {
 .toast-action { display: inline-block; margin-top: 0.5rem; font-size: 0.8rem; font-weight: 600; }
 
 /* ==========================================================================
+   Text-to-Speech Button
+   ========================================================================== */
+
+.tts-btn {
+    all: unset;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 13px;
+    color: var(--pico-muted-color);
+    background: transparent;
+    transition: color 0.15s, background 0.15s;
+    flex-shrink: 0;
+    vertical-align: middle;
+    margin-left: 0.3rem;
+}
+
+.tts-btn:hover {
+    color: var(--db-blue);
+    background: var(--db-blue-bg);
+}
+
+.tts-btn.tts-speaking {
+    color: var(--db-blue);
+    background: var(--db-blue-bg);
+    animation: tts-pulse 1.5s infinite;
+}
+
+@keyframes tts-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+}
+
+.briefing-section > h2 {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+/* ==========================================================================
    News Map — Full-screen immersive mode
    ========================================================================== */
 
