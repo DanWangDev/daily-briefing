@@ -5,13 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{% block title %}Daily Briefing{% endblock %}</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
-    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="/static/style.css?v=3">
     <script src="https://unpkg.com/htmx.org@2.0.4"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
 </head>
-<body>
-    <div class="container">
-        <nav>
+<body class="{% block body_class %}{% endblock %}">
+    <div class="container {% block container_class %}{% endblock %}">
+        <nav class="{% block nav_class %}{% endblock %}">
             <ul>
                 <li><a href="/">Daily Briefing</a></li>
                 <li><a href="/">Dashboard</a></li>

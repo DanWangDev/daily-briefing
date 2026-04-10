@@ -7,7 +7,9 @@ from datetime import date, datetime, timezone
 
 from briefing.collectors.alphavantage import AlphaVantageCollector
 from briefing.collectors.edgar import EdgarCollector
+from briefing.collectors.googlenews import GoogleNewsCollector
 from briefing.collectors.newsapi import NewsAPICollector
+from briefing.collectors.rss import FinancialRSSCollector
 from briefing.collectors.yahoo import YahooFinanceCollector
 from briefing.config import AppConfig
 from briefing.database import get_session
@@ -51,7 +53,7 @@ async def run_briefing(config: AppConfig) -> int:
     try:
         # Step 1: Collect from all sources concurrently
         logger.info("Collecting data for %d tickers: %s", len(tickers), tickers)
-        results = await _collect_all(config, tickers)
+        results = await _collect_all(config, tickers, holdings_data)
 
         # Step 2: Aggregate market data
         market_data = aggregate_market_data(results)
@@ -115,12 +117,19 @@ async def run_briefing(config: AppConfig) -> int:
         raise
 
 
-async def _collect_all(config: AppConfig, tickers: list[str]) -> list[CollectorResult]:
+async def _collect_all(
+    config: AppConfig,
+    tickers: list[str],
+    holdings_data: list[dict] | None = None,
+) -> list[CollectorResult]:
     """Run all collectors concurrently."""
+    ticker_names = {h["ticker"]: h.get("name", "") for h in (holdings_data or [])}
     collectors = [
         YahooFinanceCollector(),
         AlphaVantageCollector(config.api_keys),
         NewsAPICollector(config.api_keys),
+        GoogleNewsCollector(),
+        FinancialRSSCollector(ticker_names=ticker_names),
         EdgarCollector(),
     ]
 
