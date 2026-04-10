@@ -1,26 +1,5 @@
-schedule:
-  timezone: "America/New_York"
-  delivery_time: "07:00"
-  email_enabled: false
-
-llm:
-  provider: "anthropic"  # anthropic | openai | ollama
-  model: "claude-haiku-4-5-20251001"
-  # For ollama:
-  # provider: "ollama"
-  # model: "llama3"
-  # base_url: "http://localhost:11434"
-
-api_keys:
-  # All keys are read from environment variables, not stored here
-  alpha_vantage_env: "ALPHA_VANTAGE_KEY"
-  newsapi_env: "NEWSAPI_KEY"
-
-email:
-  smtp_host: "smtp.gmail.com"
-  smtp_port: 587
-  from_address: "briefing@example.com"
-  to_address: "me@example.com"
-
+# Only the database path is configured here.
+# All other settings (LLM, schedule, email, API keys) are managed
+# through the web UI at /settings and persisted in the database.
 database:
   path: "./data/briefing.db"

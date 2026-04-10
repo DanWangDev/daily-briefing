@@ -11,8 +11,6 @@ COPY src/ src/
 
 RUN pip install --no-cache-dir .
 
-COPY config.example.yaml .
-
 RUN mkdir -p /app/data
 
 EXPOSE 8000
