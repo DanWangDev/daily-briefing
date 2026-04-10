@@ -25,6 +25,7 @@ def create_app(config: AppConfig | None = None) -> FastAPI:
     lang = config.language if config else "en"
     app.state.templates.env.globals["_"] = get_translator(lang)
     app.state.templates.env.globals["current_lang"] = lang
+    app.state.templates.env.globals["theme"] = config.theme if config else "light"
 
     from briefing.web.routes.dashboard import router as dashboard_router
     from briefing.web.routes.portfolio import router as portfolio_router

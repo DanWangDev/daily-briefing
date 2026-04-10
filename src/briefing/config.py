@@ -86,6 +86,7 @@ class DatabaseConfig(BaseModel):
 
 class AppConfig(BaseModel):
     language: str = "en"
+    theme: str = "light"
     tts_voice: str = ""
     schedule: ScheduleConfig = Field(default_factory=ScheduleConfig)
     llm: LLMConfig = Field(default_factory=LLMConfig)

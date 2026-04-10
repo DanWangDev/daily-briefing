@@ -18,6 +18,44 @@
 }
 
 /* ==========================================================================
+   Theme: Professional (hellointerview.com inspired)
+   ========================================================================== */
+
+[data-theme="professional"] {
+    color-scheme: light;
+    --pico-background-color: #ffffff;
+    --pico-color: #161C24;
+    --pico-muted-color: #454F5B;
+    --pico-primary: #299A8D;
+    --pico-primary-hover: #1E7A6F;
+    --pico-primary-focus: rgba(41, 154, 141, 0.25);
+    --pico-primary-inverse: #ffffff;
+    --pico-card-background-color: #F8FAFB;
+    --pico-card-sectioning-background-color: #F1F7F6;
+    --pico-muted-border-color: rgba(145, 158, 171, 0.24);
+
+    --db-blue: #299A8D;
+    --db-blue-bg: rgba(41, 154, 141, 0.08);
+    --db-radius: 16px;
+    --db-radius-sm: 8px;
+    --db-card-shadow: 0 1px 4px rgba(145, 158, 171, 0.16);
+    --db-card-shadow-hover: 0 6px 16px rgba(145, 158, 171, 0.2);
+    --db-border: 1px solid rgba(145, 158, 171, 0.24);
+}
+
+/* ==========================================================================
+   Theme: Dark
+   ========================================================================== */
+
+[data-theme="dark"] {
+    --db-green-bg: rgba(16, 185, 129, 0.15);
+    --db-red-bg: rgba(239, 68, 68, 0.15);
+    --db-blue-bg: rgba(59, 130, 246, 0.12);
+    --db-card-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    --db-card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+/* ==========================================================================
    Layout
    ========================================================================== */
 
@@ -468,8 +506,10 @@ button.ticker-filter {
     font-weight: 600;
     cursor: pointer;
     transition: all 0.15s;
-    --pico-color: #373c44;
-    color: #373c44;
+    --pico-background-color: transparent;
+    --pico-border-color: var(--pico-muted-border-color);
+    --pico-color: var(--pico-contrast, #373c44);
+    color: var(--pico-contrast, #373c44);
 }
 
 button.ticker-filter:hover {
