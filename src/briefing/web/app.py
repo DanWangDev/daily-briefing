@@ -31,11 +31,13 @@ def create_app(config: AppConfig | None = None) -> FastAPI:
     from briefing.web.routes.briefings import router as briefings_router
     from briefing.web.routes.settings import router as settings_router
     from briefing.web.routes.newsmap import router as newsmap_router
+    from briefing.web.routes.tts import router as tts_router
 
     app.include_router(dashboard_router)
     app.include_router(portfolio_router)
     app.include_router(briefings_router)
     app.include_router(settings_router)
     app.include_router(newsmap_router)
+    app.include_router(tts_router)
 
     return app

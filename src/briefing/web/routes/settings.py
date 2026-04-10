@@ -27,6 +27,7 @@ async def settings_page(request: Request):
 async def update_settings(
     request: Request,
     language: str = Form("en"),
+    tts_voice: str = Form(""),
     timezone: str = Form("America/New_York"),
     delivery_time: str = Form("07:00"),
     email_enabled: bool = Form(False),
@@ -55,8 +56,9 @@ async def update_settings(
 ):
     config = request.app.state.config
 
-    # Language
+    # Language & TTS
     config.language = language
+    config.tts_voice = tts_voice
 
     # Schedule
     config.schedule.timezone = timezone

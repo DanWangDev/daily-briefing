@@ -72,6 +72,7 @@ def save_settings(session: Session, config: AppConfig) -> None:
 
     # Plain settings
     pairs.append(("ui.language", config.language, False))
+    pairs.append(("ui.tts_voice", config.tts_voice, False))
     pairs.append(("schedule.timezone", config.schedule.timezone, False))
     pairs.append(("schedule.delivery_time", config.schedule.delivery_time, False))
     pairs.append(("schedule.email_enabled", str(config.schedule.email_enabled), False))
@@ -125,9 +126,11 @@ def load_settings(session: Session, config: AppConfig) -> None:
                 return None
         return row.value
 
-    # Language
+    # Language & TTS
     if v := _get("ui.language"):
         config.language = v
+    if (v := _get("ui.tts_voice")) is not None:
+        config.tts_voice = v
 
     # Schedule
     if v := _get("schedule.timezone"):
