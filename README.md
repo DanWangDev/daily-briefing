@@ -107,6 +107,16 @@ Each news card has a speaker icon button. Click to hear the headline, summary, k
 
 Full Chinese translation for all UI text. Switch language in Settings — nav, buttons, labels, headings, and help text all change instantly. When generating a briefing in Chinese, the LLM produces summaries, sentiment reasons, and key facts in Chinese too.
 
+### Theme Selector
+
+Three themes in Settings:
+
+| Theme | Description |
+|-------|-------------|
+| **Default (Light)** | Clean light theme with blue accents |
+| **Professional (Teal)** | hellointerview.com inspired — teal accents, warmer card backgrounds, rounder corners |
+| **Dark** | hellointerview.com dark mode — warm dark gray (#212B36), teal accents, high contrast |
+
 ### Generation UX
 
 "Generate Now" runs the pipeline in the background. The dashboard shows a progress card that polls every 2 seconds. If you navigate to another page, a toast notification tells you when the briefing is ready.
