@@ -41,6 +41,33 @@ def init_db(config: AppConfig) -> None:
     import briefing.models  # noqa: F401
     Base.metadata.create_all(bind=_engine)
 
+    # Migrate existing tables — add columns that may be missing
+    _migrate(_engine)
+
+
+def _migrate(engine) -> None:
+    """Add columns that may be missing from older databases."""
+    import logging
+    from sqlalchemy import text, inspect
+
+    logger = logging.getLogger(__name__)
+    inspector = inspect(engine)
+
+    migrations = [
+        ("news_articles", "related_tickers", 'ALTER TABLE news_articles ADD COLUMN related_tickers TEXT DEFAULT "[]"'),
+        ("news_articles", "collected_at", "ALTER TABLE news_articles ADD COLUMN collected_at DATETIME DEFAULT CURRENT_TIMESTAMP"),
+    ]
+
+    with engine.connect() as conn:
+        for table, column, sql in migrations:
+            if table not in inspector.get_table_names():
+                continue
+            existing = [c["name"] for c in inspector.get_columns(table)]
+            if column not in existing:
+                logger.info("Migrating: adding %s.%s", table, column)
+                conn.execute(text(sql))
+        conn.commit()
+
 
 def get_session() -> Session:
     """Get a new database session."""

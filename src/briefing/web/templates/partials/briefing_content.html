@@ -1,7 +1,7 @@
 {% if briefing %}
     <div class="briefing-meta">
         <span class="briefing-date">{{ briefing.market_date.strftime('%A, %B %d, %Y') }}</span>
-        <span class="briefing-time">Generated {{ briefing.generated_at.strftime('%I:%M %p') }}</span>
+        <span class="briefing-time">{{ _("briefings.generated") }} {{ briefing.generated_at.strftime('%I:%M %p') }}</span>
         <span class="badge badge-{{ briefing.status }}">{{ briefing.status }}</span>
     </div>
 
@@ -20,7 +20,7 @@
 {% else %}
     <article class="empty-state">
         <div class="empty-state-icon">&#128200;</div>
-        <h2>No briefing generated</h2>
-        <p>Something went wrong. Try again.</p>
+        <h2>{{ _("briefing_content.no_briefing") }}</h2>
+        <p>{{ _("briefing_content.error") }}</p>
     </article>
 {% endif %}

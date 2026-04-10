@@ -10,6 +10,7 @@ logger = logging.getLogger(__name__)
 async def neutralize_news(
     news_items: list[NewsItem],
     llm_provider=None,
+    locale: str = "en",
 ) -> list[NeutralizedStory]:
     """Cluster and neutralize news articles using LLM.
 
@@ -40,12 +41,14 @@ async def neutralize_news(
 
     try:
         # Step 1: Global clustering — one LLM call for ALL articles
-        cluster_prompt = build_cluster_prompt(unique_articles)
+        cluster_prompt = build_cluster_prompt(unique_articles, locale=locale)
+        lang_suffix = " Respond entirely in Chinese (\u7b80\u4f53\u4e2d\u6587)." if locale != "en" else ""
         cluster_resp = await llm_provider.complete_json(
             system=(
                 "You are a financial news analyst. Group the following articles "
                 "by the story they cover. Articles about the same event or topic "
                 "should be in the same cluster, even if they mention different tickers."
+                + lang_suffix
             ),
             user=cluster_prompt,
             schema={
@@ -90,7 +93,7 @@ async def neutralize_news(
             })
 
             neutralize_prompt = build_neutralize_prompt(
-                cluster_articles, related_tickers=all_tickers or None,
+                cluster_articles, related_tickers=all_tickers or None, locale=locale,
             )
 
             # Build the output schema — include ticker_sentiments when tickers are known
@@ -120,6 +123,7 @@ async def neutralize_news(
                     "You are a neutral financial news analyst. Your job is to strip "
                     "editorial bias and present only verified facts. Identify where "
                     "sources disagree. Never editorialize. Use precise, neutral language."
+                    + lang_suffix
                 ),
                 user=neutralize_prompt,
                 schema={"type": "object", "properties": output_props},

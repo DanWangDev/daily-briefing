@@ -1,10 +1,10 @@
 {% extends "base.html" %}
-{% block title %}Dashboard - Daily Briefing{% endblock %}
+{% block title %}{{ _("nav.dashboard") }} - {{ _("app.title") }}{% endblock %}
 {% block content %}
 <header class="dashboard-header">
     <div class="dashboard-title">
-        <h1>Daily Briefing</h1>
-        <p class="dashboard-subtitle">Your morning financial snapshot</p>
+        <h1>{{ _("app.title") }}</h1>
+        <p class="dashboard-subtitle">{{ _("dashboard.subtitle") }}</p>
     </div>
     <div class="generate-group">
         <button class="generate-btn"
@@ -14,10 +14,10 @@
                 hx-disabled-elt="this"
                 onclick="localStorage.setItem('generating','1')">
             <span class="btn-icon">&#9889;</span>
-            Generate Now
+            {{ _("dashboard.generate") }}
         </button>
         {% if new_article_count %}
-        <span class="new-articles-badge">{{ new_article_count }} new article{{ 's' if new_article_count != 1 }} ready</span>
+        <span class="new-articles-badge">{{ _("dashboard.new_articles", count=new_article_count) }}</span>
         {% endif %}
     </div>
 </header>
@@ -26,7 +26,7 @@
 {% if briefing %}
     <div class="briefing-meta">
         <span class="briefing-date">{{ briefing.market_date.strftime('%A, %B %d, %Y') }}</span>
-        <span class="briefing-time">Generated {{ briefing.generated_at.strftime('%I:%M %p') }}</span>
+        <span class="briefing-time">{{ _("briefings.generated") }} {{ briefing.generated_at.strftime('%I:%M %p') }}</span>
         <span class="badge badge-{{ briefing.status }}">{{ briefing.status }}</span>
     </div>
 
@@ -46,8 +46,8 @@
 {% else %}
     <article class="empty-state">
         <div class="empty-state-icon">&#128200;</div>
-        <h2>No briefings yet</h2>
-        <p>Add some tickers in the <a href="/portfolio">Portfolio</a> page, then click <strong>Generate Now</strong> above to create your first daily briefing.</p>
+        <h2>{{ _("dashboard.no_briefings_title") }}</h2>
+        <p>{{ _("dashboard.no_briefings_text") }}</p>
     </article>
 {% endif %}
 </div>
@@ -171,7 +171,7 @@
             data: {
                 labels: dayChanges.labels,
                 datasets: [{
-                    label: 'Day Change %',
+                    label: {{ _("dashboard.day_change_pct")|tojson }},
                     data: dayChanges.values,
                     backgroundColor: colors,
                     borderColor: borderColors,

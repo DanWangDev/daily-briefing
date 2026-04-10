@@ -1,13 +1,13 @@
 <table class="holdings-table" id="holdings-table">
     <thead>
         <tr>
-            <th>Ticker</th>
-            <th>Name</th>
-            <th>Shares</th>
-            <th>Cost Basis</th>
-            <th>Current Price</th>
-            <th>Value</th>
-            <th>Gain/Loss</th>
+            <th>{{ _("portfolio.ticker") }}</th>
+            <th>{{ _("portfolio.name") }}</th>
+            <th>{{ _("portfolio.shares") }}</th>
+            <th>{{ _("portfolio.cost_basis") }}</th>
+            <th>{{ _("portfolio.current_price") }}</th>
+            <th>{{ _("portfolio.value") }}</th>
+            <th>{{ _("portfolio.gain_loss") }}</th>
             <th></th>
         </tr>
     </thead>
@@ -47,21 +47,21 @@
                         hx-delete="/api/portfolio/{{ h.id }}"
                         hx-target="#holdings-table"
                         hx-swap="outerHTML"
-                        hx-confirm="Remove {{ h.ticker }}?">
-                    Remove
+                        hx-confirm="{{ _('portfolio.remove_confirm', ticker=h.ticker) }}">
+                    {{ _("portfolio.remove") }}
                 </button>
             </td>
         </tr>
         {% else %}
         <tr>
-            <td colspan="8" style="text-align:center;">No holdings yet. Add your first ticker above.</td>
+            <td colspan="8" style="text-align:center;">{{ _("portfolio.no_holdings") }}</td>
         </tr>
         {% endfor %}
     </tbody>
     {% if holdings %}
     <tfoot>
         <tr>
-            <td colspan="5"><strong>Total</strong></td>
+            <td colspan="5"><strong>{{ _("portfolio.total") }}</strong></td>
             <td><strong>${{ "{:,.2f}".format(total_value) }}</strong></td>
             <td>
                 {% if total_gain_loss is not none %}

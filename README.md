@@ -94,6 +94,19 @@ General market news (rate decisions, trade wars, inflation data) is captured eve
 
 Configure in Settings. Only one provider active at a time.
 
+### Text-to-Speech (Edge TTS)
+
+Each news card has a speaker icon button. Click to hear the headline, summary, key facts, and bias analysis read aloud using Microsoft Edge neural voices — natural-sounding, free, zero API keys.
+
+- **9 voices**: 5 English (Aria, Ava, Emma, Andrew, Brian) + 4 Chinese (Xiaoxiao, Xiaoyi, Yunjian, Yunxi)
+- **Voice selection** in Settings — or "Auto" picks based on current language
+- Audio generated server-side via `edge-tts`, cached as MP3, played via HTML5 Audio
+- Works on all browsers
+
+### Chinese Language Support (i18n)
+
+Full Chinese translation for all UI text. Switch language in Settings — nav, buttons, labels, headings, and help text all change instantly. When generating a briefing in Chinese, the LLM produces summaries, sentiment reasons, and key facts in Chinese too.
+
 ### Generation UX
 
 "Generate Now" runs the pipeline in the background. The dashboard shows a progress card that polls every 2 seconds. If you navigate to another page, a toast notification tells you when the briefing is ready.
@@ -148,7 +161,7 @@ Everything else — LLM keys, schedule, email — is configured in Settings and 
                     7. Store briefing
 ```
 
-**Stack**: Python 3.12+ / FastAPI / SQLAlchemy / SQLite / APScheduler / HTMX / Pico CSS / Cytoscape.js / Chart.js
+**Stack**: Python 3.12+ / FastAPI / SQLAlchemy / SQLite / APScheduler / HTMX / Pico CSS / Cytoscape.js / Chart.js / Edge TTS
 
 ## Project Structure
 

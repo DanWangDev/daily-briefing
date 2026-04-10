@@ -1,14 +1,54 @@
 {% extends "base.html" %}
-{% block title %}Settings - Daily Briefing{% endblock %}
+{% block title %}{{ _("nav.settings") }} - {{ _("app.title") }}{% endblock %}
 {% block content %}
-<h1>Settings</h1>
+<h1>{{ _("settings.title") }}</h1>
 
 <form method="post" action="/api/settings">
     <fieldset>
-        <legend>Schedule</legend>
+        <legend>{{ _("settings.language") }}</legend>
         <div class="form-row">
             <label>
-                Timezone
+                {{ _("settings.language") }}
+                <select name="language">
+                    <option value="en" {% if config.language == 'en' %}selected{% endif %}>English</option>
+                    <option value="zh" {% if config.language == 'zh' %}selected{% endif %}>中文</option>
+                </select>
+            </label>
+            <label>
+                TTS Voice
+                <select name="tts_voice">
+                    <option value="">Auto ({{ _("settings.language") }})</option>
+                    <optgroup label="English">
+                        {% for v in [
+                            ('en-US-AriaNeural', 'Aria (Female)'),
+                            ('en-US-AvaNeural', 'Ava (Female)'),
+                            ('en-US-EmmaNeural', 'Emma (Female)'),
+                            ('en-US-AndrewNeural', 'Andrew (Male)'),
+                            ('en-US-BrianNeural', 'Brian (Male)'),
+                        ] %}
+                        <option value="{{ v[0] }}" {% if config.tts_voice == v[0] %}selected{% endif %}>{{ v[1] }}</option>
+                        {% endfor %}
+                    </optgroup>
+                    <optgroup label="Chinese">
+                        {% for v in [
+                            ('zh-CN-XiaoxiaoNeural', 'Xiaoxiao 晓晓 (Female)'),
+                            ('zh-CN-XiaoyiNeural', 'Xiaoyi 晓伊 (Female)'),
+                            ('zh-CN-YunjianNeural', 'Yunjian 云健 (Male)'),
+                            ('zh-CN-YunxiNeural', 'Yunxi 云希 (Male)'),
+                        ] %}
+                        <option value="{{ v[0] }}" {% if config.tts_voice == v[0] %}selected{% endif %}>{{ v[1] }}</option>
+                        {% endfor %}
+                    </optgroup>
+                </select>
+            </label>
+        </div>
+    </fieldset>
+
+    <fieldset>
+        <legend>{{ _("settings.schedule") }}</legend>
+        <div class="form-row">
+            <label>
+                {{ _("settings.timezone") }}
                 <select name="timezone">
                     {% set tz = config.schedule.timezone %}
                     <optgroup label="US">
@@ -44,21 +84,21 @@
                 </select>
             </label>
             <label>
-                Delivery Time
+                {{ _("settings.delivery_time") }}
                 <input type="time" name="delivery_time" value="{{ config.schedule.delivery_time }}">
             </label>
         </div>
         <label>
             <input type="checkbox" name="email_enabled" role="switch"
                    {{ 'checked' if config.schedule.email_enabled else '' }}>
-            Enable email delivery
+            {{ _("settings.email_enabled") }}
         </label>
     </fieldset>
 
     <fieldset>
-        <legend>LLM Provider</legend>
+        <legend>{{ _("settings.llm_provider") }}</legend>
         <label>
-            Active Provider
+            {{ _("settings.active_provider") }}
             <select name="llm_provider" id="llm-provider-select">
                 <option value="anthropic" {{ 'selected' if config.llm.provider == 'anthropic' }}>Anthropic (Claude)</option>
                 <option value="openai" {{ 'selected' if config.llm.provider == 'openai' }}>OpenAI</option>
@@ -70,39 +110,39 @@
         <div class="llm-config-section" data-provider="anthropic">
             <div class="form-row">
                 <label>
-                    Model
+                    {{ _("settings.model") }}
                     <input type="text" name="anthropic_model" value="{{ config.llm.model if config.llm.provider == 'anthropic' else 'claude-haiku-4-5-20251001' }}">
                 </label>
                 <label>
-                    API Key
+                    {{ _("settings.api_key") }}
                     <input type="password" name="anthropic_api_key"
                            placeholder="{{ config.llm.api_key_display('anthropic') or 'sk-ant-...' }}"
                            autocomplete="off">
                 </label>
             </div>
-            <small>Leave API key blank to keep the current key. Set via <code>ANTHROPIC_API_KEY</code> env var or enter above.</small>
+            <small>{{ _("settings.keep_key_hint") }}</small>
         </div>
 
         <div class="llm-config-section" data-provider="openai">
             <div class="form-row">
                 <label>
-                    Model
+                    {{ _("settings.model") }}
                     <input type="text" name="openai_model" value="{{ config.llm.model if config.llm.provider == 'openai' else 'gpt-4o-mini' }}">
                 </label>
                 <label>
-                    API Key
+                    {{ _("settings.api_key") }}
                     <input type="password" name="openai_api_key"
                            placeholder="{{ config.llm.api_key_display('openai') or 'sk-...' }}"
                            autocomplete="off">
                 </label>
             </div>
-            <small>Leave API key blank to keep the current key. Set via <code>OPENAI_API_KEY</code> env var or enter above.</small>
+            <small>{{ _("settings.keep_key_hint") }}</small>
         </div>
 
         <div class="llm-config-section" data-provider="qwen">
             <div class="form-row">
                 <label>
-                    Model
+                    {{ _("settings.model") }}
                     <select name="qwen_model">
                         {% set qm = config.llm.model if config.llm.provider == 'qwen' else 'qwen-plus' %}
                         <optgroup label="Qwen-Plus (Balanced)">
@@ -123,7 +163,7 @@
                     </select>
                 </label>
                 <label>
-                    API Key
+                    {{ _("settings.api_key") }}
                     <input type="password" name="qwen_api_key"
                            placeholder="{{ config.llm.api_key_display('qwen') or 'sk-...' }}"
                            autocomplete="off">
@@ -131,87 +171,87 @@
             </div>
             <div class="form-row">
                 <label>
-                    Base URL
+                    {{ _("settings.base_url") }}
                     <input type="text" name="qwen_base_url" value="{{ config.llm.base_url if config.llm.provider == 'qwen' else 'https://dashscope-intl.aliyuncs.com/compatible-mode/v1' }}">
                 </label>
             </div>
-            <small>Leave API key blank to keep the current key. Set via <code>DASHSCOPE_API_KEY</code> env var or enter above. Get a key at <a href="https://www.alibabacloud.com/en/product/dashscope" target="_blank">DashScope</a>.</small>
+            <small>{{ _("settings.keep_key_hint") }}</small>
         </div>
 
         <div class="llm-config-section" data-provider="ollama">
             <div class="form-row">
                 <label>
-                    Model
+                    {{ _("settings.model") }}
                     <input type="text" name="ollama_model" value="{{ config.llm.model if config.llm.provider == 'ollama' else 'llama3' }}">
                 </label>
                 <label>
-                    Base URL
+                    {{ _("settings.base_url") }}
                     <input type="text" name="ollama_base_url" value="{{ config.llm.base_url or 'http://localhost:11434' }}">
                 </label>
             </div>
-            <small>No API key needed. Make sure Ollama is running at the specified URL.</small>
+            <small>{{ _("settings.ollama_hint") }}</small>
         </div>
     </fieldset>
 
     <fieldset>
-        <legend>Data Source API Keys</legend>
+        <legend>{{ _("settings.data_sources") }}</legend>
         <div class="form-row">
             <label>
-                NewsAPI Key
+                {{ _("settings.newsapi_key") }}
                 <input type="password" name="newsapi_key"
-                       placeholder="{{ config.api_keys.key_display('newsapi') or 'Not configured' }}"
+                       placeholder="{{ config.api_keys.key_display('newsapi') or _('settings.not_configured') }}"
                        autocomplete="off">
             </label>
             <label>
-                Alpha Vantage Key
+                {{ _("settings.av_key") }}
                 <input type="password" name="alpha_vantage_key"
-                       placeholder="{{ config.api_keys.key_display('alpha_vantage') or 'Not configured' }}"
+                       placeholder="{{ config.api_keys.key_display('alpha_vantage') or _('settings.not_configured') }}"
                        autocomplete="off">
             </label>
         </div>
-        <small>Leave blank to keep current keys. Free tiers: <a href="https://newsapi.org/register" target="_blank">NewsAPI</a> (100 req/day) &middot; <a href="https://www.alphavantage.co/support/#api-key" target="_blank">Alpha Vantage</a> (25 req/day)</small>
+        <small>{{ _("settings.keep_keys_hint") }}</small>
     </fieldset>
 
     <fieldset>
-        <legend>Email (SMTP)</legend>
+        <legend>{{ _("settings.email_smtp") }}</legend>
         <div class="form-row">
             <label>
-                SMTP Host
+                {{ _("settings.smtp_host") }}
                 <input type="text" name="smtp_host" value="{{ config.email.smtp_host }}">
             </label>
             <label>
-                SMTP Port
+                {{ _("settings.smtp_port") }}
                 <input type="number" name="smtp_port" value="{{ config.email.smtp_port }}">
             </label>
         </div>
         <div class="form-row">
             <label>
-                From Address
+                {{ _("settings.from_address") }}
                 <input type="email" name="from_address" value="{{ config.email.from_address }}">
             </label>
             <label>
-                To Address
+                {{ _("settings.to_address") }}
                 <input type="email" name="to_address" value="{{ config.email.to_address }}">
             </label>
         </div>
         <div class="form-row">
             <label>
-                SMTP Username
+                {{ _("settings.smtp_user") }}
                 <input type="text" name="email_user"
-                       placeholder="{{ '****' if config.email.username else 'Not configured' }}"
+                       placeholder="{{ '****' if config.email.username else _('settings.not_configured') }}"
                        autocomplete="off">
             </label>
             <label>
-                SMTP Password
+                {{ _("settings.smtp_pass") }}
                 <input type="password" name="email_pass"
-                       placeholder="{{ '****' if config.email.password else 'Not configured' }}"
+                       placeholder="{{ '****' if config.email.password else _('settings.not_configured') }}"
                        autocomplete="off">
             </label>
         </div>
-        <small>Leave username/password blank to keep current values. Can also be set via <code>EMAIL_USER</code> / <code>EMAIL_PASS</code> env vars.</small>
+        <small>{{ _("settings.email_creds_hint") }}</small>
     </fieldset>
 
-    <button type="submit">Save Settings</button>
+    <button type="submit">{{ _("settings.save") }}</button>
 </form>
 
 <script>

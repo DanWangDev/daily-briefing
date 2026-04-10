@@ -458,7 +458,7 @@ nav a {
     margin-bottom: 1.25rem;
 }
 
-.ticker-filter {
+button.ticker-filter {
     display: inline-block;
     padding: 0.3rem 0.85rem;
     border: 1px solid var(--pico-muted-border-color);
@@ -468,16 +468,17 @@ nav a {
     font-weight: 600;
     cursor: pointer;
     transition: all 0.15s;
-    color: var(--pico-color);
+    --pico-color: #373c44;
+    color: #373c44;
 }
 
-.ticker-filter:hover {
+button.ticker-filter:hover {
     border-color: var(--db-blue);
     color: var(--db-blue);
     background: var(--db-blue-bg);
 }
 
-.ticker-filter.active {
+button.ticker-filter.active {
     background: var(--db-blue);
     color: #fff;
     border-color: var(--db-blue);
@@ -941,6 +942,56 @@ nav a {
 .toast strong { display: block; margin-bottom: 0.2rem; font-size: 0.9rem; }
 .toast p { margin: 0; font-size: 0.8rem; color: var(--pico-muted-color); }
 .toast-action { display: inline-block; margin-top: 0.5rem; font-size: 0.8rem; font-weight: 600; }
+
+/* ==========================================================================
+   Text-to-Speech Button
+   ========================================================================== */
+
+.tts-btn {
+    all: unset;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    color: var(--db-blue);
+    background: var(--db-blue-bg);
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    transition: color 0.15s, background 0.15s, border-color 0.15s;
+    flex-shrink: 0;
+    vertical-align: middle;
+    margin-left: 0.5rem;
+}
+
+.tts-btn:hover {
+    color: #fff;
+    background: var(--db-blue);
+    border-color: var(--db-blue);
+}
+
+.tts-btn.tts-speaking {
+    color: var(--db-blue);
+    background: var(--db-blue-bg);
+    animation: tts-pulse 1.5s infinite;
+}
+
+@keyframes tts-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+}
+
+.news-card-header h3 {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.4rem;
+}
+
+.news-card-header h3 .tts-btn {
+    margin-top: 0.15rem;
+}
 
 /* ==========================================================================
    News Map — Full-screen immersive mode

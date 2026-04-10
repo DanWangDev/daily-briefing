@@ -19,6 +19,7 @@ dependencies = [
     "python-multipart>=0.0.18",
     "aiosmtplib>=3.0",
     "cryptography>=44.0",
+    "edge-tts>=7.0",
 ]
 
 [project.optional-dependencies]

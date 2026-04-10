@@ -94,9 +94,22 @@ docker-compose up --build
 
 在设置中配置，同一时间只有一个服务商生效。
 
+### 语音朗读（Edge TTS）
+
+每条新闻卡片旁都有一个朗读按钮。点击后即可听到标题、摘要、关键事实和偏见分析的语音播报，使用微软 Edge 神经网络语音引擎——自然流畅、完全免费、无需 API 密钥。
+
+- **9 种语音**：5 种英文（Aria、Ava、Emma、Andrew、Brian）+ 4 种中文（晓晓、晓伊、云健、云希）
+- 在设置中选择语音，或选择"自动"根据当前语言自动匹配
+- 服务端通过 `edge-tts` 生成音频，缓存为 MP3，通过 HTML5 Audio 播放
+- 所有浏览器均可使用
+
+### 中文语言支持（i18n）
+
+全部界面文字支持中文翻译。在设置中切换语言后，导航栏、按钮、标签、标题和帮助文字即时切换。生成简报时选择中文，LLM 也会以中文输出摘要、情绪分析和关键事实。
+
 ### 生成体验
 
-点击"Generate Now"后，生成管道在后台运行。仪表板每 2 秒轮询一次显示进度卡片。如果你导航到其他页面，简报完成时会弹出 Toast 通知。
+点击"立即生成"后，生成管道在后台运行。仪表板每 2 秒轮询一次显示进度卡片。如果你导航到其他页面，简报完成时会弹出 Toast 通知。
 
 ### 邮件推送
 
@@ -148,7 +161,7 @@ database:
                     7. 存储简报
 ```
 
-**技术栈**：Python 3.12+ / FastAPI / SQLAlchemy / SQLite / APScheduler / HTMX / Pico CSS / Cytoscape.js / Chart.js
+**技术栈**：Python 3.12+ / FastAPI / SQLAlchemy / SQLite / APScheduler / HTMX / Pico CSS / Cytoscape.js / Chart.js / Edge TTS
 
 ## 项目结构
 

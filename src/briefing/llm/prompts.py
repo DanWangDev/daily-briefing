@@ -3,7 +3,7 @@ from __future__ import annotations
 from briefing.schemas import NewsItem
 
 
-def build_cluster_prompt(articles: list[NewsItem]) -> str:
+def build_cluster_prompt(articles: list[NewsItem], locale: str = "en") -> str:
     """Build a prompt for clustering articles by story."""
     lines = []
     for i, article in enumerate(articles):
@@ -12,18 +12,27 @@ def build_cluster_prompt(articles: list[NewsItem]) -> str:
             lines.append(f"    {article.snippet[:200]}")
         lines.append("")
 
+    lang_instruction = ""
+    if locale != "en":
+        lang_instruction = (
+            "\nIMPORTANT: Return ALL text (story labels) in Chinese (\u7b80\u4f53\u4e2d\u6587). "
+            "Keep ticker symbols in English.\n"
+        )
+
     return (
         "Group the following news articles by the story they cover. "
         "Articles about the same event or topic should be in the same cluster. "
         "Return JSON with a 'clusters' array. Each cluster has a 'story' (short label) "
         "and 'article_indices' (array of integer indices).\n\n"
-        "Articles:\n" + "\n".join(lines)
+        + lang_instruction
+        + "Articles:\n" + "\n".join(lines)
     )
 
 
 def build_neutralize_prompt(
     articles: list[NewsItem],
     related_tickers: list[str] | None = None,
+    locale: str = "en",
 ) -> str:
     """Build a prompt for neutralizing a cluster of articles.
 
@@ -65,5 +74,16 @@ def build_neutralize_prompt(
         "- bias_analysis: how coverage differed between sources\n"
         "- sentiment_range: {most_bullish: source_name, most_bearish: source_name}\n"
         + ("- ticker_sentiments: array of per-ticker sentiment objects (see above)\n" if related_tickers else "")
+        + (_locale_instruction(locale))
         + "\nArticles:\n" + "\n".join(lines)
+    )
+
+
+def _locale_instruction(locale: str) -> str:
+    if locale == "en":
+        return ""
+    return (
+        "\nIMPORTANT: Write ALL output text in Chinese (\u7b80\u4f53\u4e2d\u6587). "
+        "This includes the headline, factual_summary, key_facts, bias_analysis, "
+        "and ticker sentiment reasons. Keep ticker symbols and proper nouns in English.\n"
     )
