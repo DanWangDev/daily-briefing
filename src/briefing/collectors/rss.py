@@ -41,6 +41,18 @@ _FEEDS: list[tuple[str, str]] = [
         "WSJ Markets",
         "https://feeds.a.dj.com/rss/RSSMarketsMain.xml",
     ),
+    (
+        "Bloomberg Markets",
+        "https://feeds.bloomberg.com/markets/news.rss",
+    ),
+    (
+        "Bloomberg Economics",
+        "https://feeds.bloomberg.com/economics/news.rss",
+    ),
+    (
+        "Reuters Markets",
+        "https://reutersbest.com/topic/markets/feed/",
+    ),
 ]
 
 _MAX_MACRO_ARTICLES = 10
