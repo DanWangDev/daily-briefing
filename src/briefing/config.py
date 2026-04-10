@@ -30,6 +30,7 @@ class LLMConfig(BaseModel):
         env_map = {
             "anthropic": "ANTHROPIC_API_KEY",
             "openai": "OPENAI_API_KEY",
+            "qwen": "DASHSCOPE_API_KEY",
         }
         env_var = env_map.get(provider)
         if env_var:

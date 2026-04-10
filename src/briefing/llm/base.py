@@ -49,5 +49,14 @@ def create_llm_provider(config: LLMConfig) -> BaseLLMProvider:
                 base_url=config.base_url or "http://localhost:11434",
                 model=config.model,
             )
+        case "qwen":
+            from briefing.llm.qwen_provider import QwenProvider
+            if not config.api_key:
+                raise ValueError("DASHSCOPE_API_KEY environment variable not set")
+            return QwenProvider(
+                api_key=config.api_key,
+                model=config.model,
+                base_url=config.base_url or "https://dashscope-intl.aliyuncs.com/compatible-mode/v1",
+            )
         case _:
             raise ValueError(f"Unknown LLM provider: {config.provider}")

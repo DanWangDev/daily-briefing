@@ -32,10 +32,13 @@ async def update_settings(
     anthropic_model: str = Form("claude-haiku-4-5-20251001"),
     openai_model: str = Form("gpt-4o-mini"),
     ollama_model: str = Form("llama3"),
+    qwen_model: str = Form("qwen-plus"),
     # Per-provider config
     anthropic_api_key: str = Form(""),
     openai_api_key: str = Form(""),
     ollama_base_url: str = Form("http://localhost:11434"),
+    qwen_api_key: str = Form(""),
+    qwen_base_url: str = Form("https://dashscope-intl.aliyuncs.com/compatible-mode/v1"),
     # Data source keys
     newsapi_key: str = Form(""),
     alpha_vantage_key: str = Form(""),
@@ -60,15 +63,22 @@ async def update_settings(
         "anthropic": anthropic_model,
         "openai": openai_model,
         "ollama": ollama_model,
+        "qwen": qwen_model,
     }
     config.llm.model = model_map.get(llm_provider, anthropic_model)
-    config.llm.base_url = ollama_base_url if llm_provider == "ollama" else config.llm.base_url
+    base_url_map = {
+        "ollama": ollama_base_url,
+        "qwen": qwen_base_url,
+    }
+    config.llm.base_url = base_url_map.get(llm_provider, config.llm.base_url)
 
     # LLM API keys (only update if non-empty - blank means keep current)
     if anthropic_api_key.strip():
         config.llm.set_api_key("anthropic", anthropic_api_key.strip())
     if openai_api_key.strip():
         config.llm.set_api_key("openai", openai_api_key.strip())
+    if qwen_api_key.strip():
+        config.llm.set_api_key("qwen", qwen_api_key.strip())
 
     # Data source API keys
     if newsapi_key.strip():
