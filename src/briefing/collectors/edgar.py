@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 EDGAR_SEARCH = "https://efts.sec.gov/LATEST/search-index"
 EDGAR_SUBMISSIONS = "https://data.sec.gov/submissions"
-USER_AGENT = "DailyBriefing/1.0 (personal use)"
+USER_AGENT = "DailyBriefing/1.0 (admin@daily-briefing.local)"
 
 
 class EdgarCollector(BaseCollector):

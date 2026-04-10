@@ -34,8 +34,12 @@ _FEEDS: list[tuple[str, str]] = [
         "http://feeds.marketwatch.com/marketwatch/marketpulse/",
     ),
     (
-        "Reuters Business",
-        "https://www.reutersagency.com/feed/?taxonomy=best-sectors&post_type=best",
+        "BBC Business",
+        "https://feeds.bbci.co.uk/news/business/rss.xml",
+    ),
+    (
+        "WSJ Markets",
+        "https://feeds.a.dj.com/rss/RSSMarketsMain.xml",
     ),
 ]
 
