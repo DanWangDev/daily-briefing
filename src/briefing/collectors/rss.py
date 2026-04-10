@@ -33,7 +33,25 @@ _FEEDS: list[tuple[str, str]] = [
         "MarketWatch Market Pulse",
         "http://feeds.marketwatch.com/marketwatch/marketpulse/",
     ),
+    (
+        "Reuters Business",
+        "https://www.reutersagency.com/feed/?taxonomy=best-sectors&post_type=best",
+    ),
 ]
+
+_MAX_MACRO_ARTICLES = 10
+
+_MACRO_KEYWORDS = frozenset([
+    "federal reserve", "fed ", "interest rate", "rate hike", "rate cut",
+    "inflation", "cpi", "gdp", "unemployment", "jobs report",
+    "tariff", "trade war", "sanction", "opec", "oil price",
+    "recession", "debt ceiling", "treasury yield", "bond yield",
+    "geopolitical", "war ", "conflict", "supply chain",
+    "consumer confidence", "pmi", "economic growth",
+    "stock market", "market crash", "bear market", "bull market",
+    "central bank", "monetary policy", "fiscal policy",
+    "global economy", "emerging market", "commodity",
+])
 
 
 class FinancialRSSCollector(BaseCollector):
@@ -53,6 +71,7 @@ class FinancialRSSCollector(BaseCollector):
     async def collect(self, tickers: list[str]) -> CollectorResult:
         patterns = _build_patterns(tickers, self._ticker_names)
         all_news: list[NewsItem] = []
+        macro_count = 0
         errors: list[str] = []
 
         async with httpx.AsyncClient(
@@ -76,7 +95,12 @@ class FinancialRSSCollector(BaseCollector):
                             patterns,
                         )
                         if not matched:
-                            continue
+                            # Keep macro-relevant articles even without ticker matches
+                            if macro_count >= _MAX_MACRO_ARTICLES:
+                                continue
+                            if not _is_macro_relevant(item["title"], item["description"]):
+                                continue
+                            macro_count += 1
 
                         all_news.append(NewsItem(
                             title=item["title"],
@@ -97,6 +121,16 @@ class FinancialRSSCollector(BaseCollector):
             news=all_news,
             errors=errors,
         )
+
+
+# ---------------------------------------------------------------------------
+# Macro relevance filter
+# ---------------------------------------------------------------------------
+
+def _is_macro_relevant(title: str, description: str) -> bool:
+    """Check if an article is about macro/geopolitical events."""
+    text = f"{title} {description}".lower()
+    return any(kw in text for kw in _MACRO_KEYWORDS)
 
 
 # ---------------------------------------------------------------------------

@@ -10,11 +10,10 @@
             hx-post="/api/briefings/generate"
             hx-target="#briefing-content"
             hx-swap="innerHTML"
-            hx-indicator="#gen-spinner"
-            hx-disabled-elt="this">
+            hx-disabled-elt="this"
+            onclick="localStorage.setItem('generating','1')">
         <span class="btn-icon">&#9889;</span>
         Generate Now
-        <span id="gen-spinner" class="htmx-indicator" aria-busy="true"></span>
     </button>
 </header>
 

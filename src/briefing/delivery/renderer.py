@@ -345,6 +345,18 @@ def render_briefing_html(
             "change_pct": round(h["change_pct"], 2),
         })
 
+    # Add virtual MARKET hub node if any story has no ticker connections
+    has_macro = any(not s.related_tickers for s in neutralized_stories)
+    if has_macro:
+        graph_data["nodes"].append({
+            "id": "ticker-MARKET",
+            "type": "market",
+            "label": "MARKET",
+            "name": "Macro & Geopolitical",
+            "value": 0,
+            "change_pct": 0,
+        })
+
     for idx, story in enumerate(neutralized_stories):
         story_id = f"story-{idx}"
         sentiments_by_ticker = {
@@ -361,14 +373,24 @@ def render_briefing_html(
             "sources": len(story.source_articles),
         })
 
-        for ticker in story.related_tickers:
-            ts = sentiments_by_ticker.get(ticker)
+        if story.related_tickers:
+            for ticker in story.related_tickers:
+                ts = sentiments_by_ticker.get(ticker)
+                graph_data["edges"].append({
+                    "source": story_id,
+                    "target": f"ticker-{ticker}",
+                    "sentiment": ts.sentiment if ts else "neutral",
+                    "score": ts.score if ts else 0.0,
+                    "reason": ts.reason if ts else "",
+                })
+        elif has_macro:
+            # Connect macro/general stories to the MARKET hub
             graph_data["edges"].append({
                 "source": story_id,
-                "target": f"ticker-{ticker}",
-                "sentiment": ts.sentiment if ts else "neutral",
-                "score": ts.score if ts else 0.0,
-                "reason": ts.reason if ts else "",
+                "target": "ticker-MARKET",
+                "sentiment": "neutral",
+                "score": 0.0,
+                "reason": "Broad market impact",
             })
 
     parts.append(
