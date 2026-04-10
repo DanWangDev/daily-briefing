@@ -21,7 +21,7 @@ async def send_briefing_email(
     password = email_config.password
 
     if not username or not password:
-        logger.warning("Email credentials not configured (EMAIL_USER / EMAIL_PASS). Skipping email.")
+        logger.warning("Email credentials not configured — set them in Settings. Skipping email.")
         return
 
     msg = MIMEMultipart("alternative")

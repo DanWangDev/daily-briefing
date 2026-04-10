@@ -18,6 +18,12 @@ def main() -> None:
     config = load_config()
     init_db(config)
 
+    # Hydrate config from persisted settings (DB is source of truth for keys)
+    from briefing.database import get_session
+    from briefing.settings_store import load_settings
+    with get_session() as session:
+        load_settings(session, config)
+
     # Import here to avoid circular imports with DB init
     from briefing.web.app import create_app
 

@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 import logging
-import os
 
 from fastapi import APIRouter, Form, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
+
+from briefing.database import get_session
+from briefing.settings_store import save_settings
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -92,11 +94,15 @@ async def update_settings(
     config.email.from_address = from_address
     config.email.to_address = to_address
 
-    # Email credentials (set as env vars in the process for this session)
+    # Email credentials
     if email_user.strip():
-        os.environ["EMAIL_USER"] = email_user.strip()
+        config.email.set_credential("username", email_user.strip())
     if email_pass.strip():
-        os.environ["EMAIL_PASS"] = email_pass.strip()
+        config.email.set_credential("password", email_pass.strip())
+
+    # Persist all settings to database
+    with get_session() as session:
+        save_settings(session, config)
 
     # Restart scheduler with new settings
     from briefing.scheduler import reschedule
