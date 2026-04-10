@@ -972,9 +972,11 @@ button.ticker-filter.active {
     border-color: var(--db-blue);
 }
 
-.tts-btn.tts-speaking {
-    color: var(--db-blue);
-    background: var(--db-blue-bg);
+.tts-btn.tts-speaking,
+.tts-btn.translate-active {
+    color: #fff;
+    background: var(--db-blue);
+    border-color: var(--db-blue);
     animation: tts-pulse 1.5s infinite;
 }
 
