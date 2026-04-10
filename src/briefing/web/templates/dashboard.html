@@ -159,11 +159,14 @@
         var canvas = document.getElementById('day-performance-chart');
         if (!canvas || !dayChanges) return;
 
+        var cs = getComputedStyle(document.documentElement);
+        var greenC = cs.getPropertyValue('--db-green').trim() || '#10b981';
+        var redC = cs.getPropertyValue('--db-red').trim() || '#ef4444';
         var colors = dayChanges.values.map(function(v) {
-            return v >= 0 ? 'rgba(16, 185, 129, 0.8)' : 'rgba(239, 68, 68, 0.8)';
+            return v >= 0 ? greenC + 'cc' : redC + 'cc';
         });
         var borderColors = dayChanges.values.map(function(v) {
-            return v >= 0 ? '#10b981' : '#ef4444';
+            return v >= 0 ? greenC : redC;
         });
 
         new Chart(canvas, {

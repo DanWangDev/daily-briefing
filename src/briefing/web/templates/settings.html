@@ -15,6 +15,14 @@
                 </select>
             </label>
             <label>
+                Theme
+                <select name="theme">
+                    <option value="light" {% if config.theme == 'light' %}selected{% endif %}>Default (Light)</option>
+                    <option value="professional" {% if config.theme == 'professional' %}selected{% endif %}>Professional (Teal)</option>
+                    <option value="dark" {% if config.theme == 'dark' %}selected{% endif %}>Dark</option>
+                </select>
+            </label>
+            <label>
                 TTS Voice
                 <select name="tts_voice">
                     <option value="">Auto ({{ _("settings.language") }})</option>

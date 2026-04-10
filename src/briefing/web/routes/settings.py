@@ -27,6 +27,7 @@ async def settings_page(request: Request):
 async def update_settings(
     request: Request,
     language: str = Form("en"),
+    theme: str = Form("light"),
     tts_voice: str = Form(""),
     timezone: str = Form("America/New_York"),
     delivery_time: str = Form("07:00"),
@@ -56,8 +57,9 @@ async def update_settings(
 ):
     config = request.app.state.config
 
-    # Language & TTS
+    # Language, theme & TTS
     config.language = language
+    config.theme = theme
     config.tts_voice = tts_voice
 
     # Schedule
@@ -122,5 +124,6 @@ async def update_settings(
     load_translations.cache_clear()
     request.app.state.templates.env.globals["_"] = get_translator(config.language)
     request.app.state.templates.env.globals["current_lang"] = config.language
+    request.app.state.templates.env.globals["theme"] = config.theme
 
     return RedirectResponse("/settings", status_code=303)
