@@ -458,7 +458,7 @@ nav a {
     margin-bottom: 1.25rem;
 }
 
-.ticker-filter {
+button.ticker-filter {
     display: inline-block;
     padding: 0.3rem 0.85rem;
     border: 1px solid var(--pico-muted-border-color);
@@ -468,16 +468,17 @@ nav a {
     font-weight: 600;
     cursor: pointer;
     transition: all 0.15s;
-    color: var(--pico-color);
+    --pico-color: #373c44;
+    color: #373c44;
 }
 
-.ticker-filter:hover {
+button.ticker-filter:hover {
     border-color: var(--db-blue);
     color: var(--db-blue);
     background: var(--db-blue-bg);
 }
 
-.ticker-filter.active {
+button.ticker-filter.active {
     background: var(--db-blue);
     color: #fff;
     border-color: var(--db-blue);
