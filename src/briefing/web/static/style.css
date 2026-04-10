@@ -21,7 +21,7 @@
    Theme: Professional (hellointerview.com inspired)
    ========================================================================== */
 
-[data-theme="professional"] {
+:root[data-theme="professional"] {
     color-scheme: light;
     --pico-background-color: #ffffff;
     --pico-color: #161C24;
@@ -33,6 +33,7 @@
     --pico-card-background-color: #F8FAFB;
     --pico-card-sectioning-background-color: #F1F7F6;
     --pico-muted-border-color: rgba(145, 158, 171, 0.24);
+    --pico-contrast: #161C24;
 
     --db-blue: #299A8D;
     --db-blue-bg: rgba(41, 154, 141, 0.08);
@@ -47,7 +48,7 @@
    Theme: Dark
    ========================================================================== */
 
-[data-theme="dark"] {
+:root[data-theme="dark"] {
     --db-green-bg: rgba(16, 185, 129, 0.15);
     --db-red-bg: rgba(239, 68, 68, 0.15);
     --db-blue-bg: rgba(59, 130, 246, 0.12);
