@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 import yfinance as yf
 
 from briefing.collectors.base import BaseCollector, RateLimiter
-from briefing.schemas import CollectorResult, TickerQuote
+from briefing.schemas import CollectorResult, NewsItem, TickerQuote
 
 logger = logging.getLogger(__name__)
 
@@ -22,21 +22,23 @@ class YahooFinanceCollector(BaseCollector):
         return "Yahoo Finance"
 
     async def collect(self, tickers: list[str]) -> CollectorResult:
-        """Fetch quotes for all tickers. Uses yfinance batch download."""
+        """Fetch quotes and news for all tickers."""
         errors: list[str] = []
         quotes: list[TickerQuote] = []
+        news: list[NewsItem] = []
 
         try:
             await self._rate_limiter.acquire()
             # yfinance is synchronous, run in executor
-            data = await asyncio.get_event_loop().run_in_executor(
+            fetched_quotes, fetched_news = await asyncio.get_event_loop().run_in_executor(
                 None, self._fetch_batch, tickers
             )
-            for ticker_str, quote in data.items():
+            for ticker_str, quote in fetched_quotes.items():
                 if quote is not None:
                     quotes.append(quote)
                 else:
                     errors.append(f"No data returned for {ticker_str}")
+            news.extend(fetched_news)
         except Exception as e:
             logger.error("Yahoo Finance batch fetch failed: %s", e)
             errors.append(f"Batch fetch failed: {e}")
@@ -45,17 +47,22 @@ class YahooFinanceCollector(BaseCollector):
             source="yahoo_finance",
             collected_at=datetime.now(timezone.utc),
             quotes=quotes,
+            news=news,
             errors=errors,
         )
 
-    def _fetch_batch(self, tickers: list[str]) -> dict[str, TickerQuote | None]:
+    def _fetch_batch(
+        self, tickers: list[str]
+    ) -> tuple[dict[str, TickerQuote | None], list[NewsItem]]:
         """Synchronous batch fetch using yfinance."""
         results: dict[str, TickerQuote | None] = {}
+        all_news: list[NewsItem] = []
 
         for ticker_str in tickers:
+            yf_ticker = yf.Ticker(ticker_str)
+
             try:
-                ticker = yf.Ticker(ticker_str)
-                info = ticker.info
+                info = yf_ticker.info
 
                 if not info or "currentPrice" not in info and "regularMarketPrice" not in info:
                     results[ticker_str] = None
@@ -84,4 +91,42 @@ class YahooFinanceCollector(BaseCollector):
                 logger.warning("Failed to fetch %s: %s", ticker_str, e)
                 results[ticker_str] = None
 
-        return results
+            # Fetch news separately so a failure doesn't block quotes
+            try:
+                raw_news = yf_ticker.news or []
+                for item in raw_news[:5]:
+                    content = item.get("content", {})
+                    title = content.get("title")
+                    if not title:
+                        continue
+
+                    url = ""
+                    for url_key in ("canonicalUrl", "clickThroughUrl"):
+                        url_obj = content.get(url_key)
+                        if isinstance(url_obj, dict) and url_obj.get("url"):
+                            url = url_obj["url"]
+                            break
+
+                    pub_date_str = content.get("pubDate", "")
+                    try:
+                        pub_date = datetime.fromisoformat(
+                            pub_date_str.replace("Z", "+00:00")
+                        )
+                    except (ValueError, AttributeError):
+                        pub_date = datetime.now(timezone.utc)
+
+                    provider = content.get("provider", {})
+                    source = provider.get("displayName", "Yahoo Finance") if isinstance(provider, dict) else "Yahoo Finance"
+
+                    all_news.append(NewsItem(
+                        title=title,
+                        source=source,
+                        url=url,
+                        published_at=pub_date,
+                        snippet=content.get("summary", ""),
+                        related_tickers=[ticker_str],
+                    ))
+            except Exception as e:
+                logger.debug("Yahoo news fetch failed for %s: %s", ticker_str, e)
+
+        return results, all_news

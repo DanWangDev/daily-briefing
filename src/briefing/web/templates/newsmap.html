@@ -1,50 +1,92 @@
 {% extends "base.html" %}
 {% block title %}News Map - Daily Briefing{% endblock %}
+{% block body_class %}nm-page{% endblock %}
+{% block container_class %}nm-page-container{% endblock %}
+{% block nav_class %}nm-page-nav{% endblock %}
 {% block content %}
-<header class="newsmap-header">
-    <div class="newsmap-title">
-        <h1>News Map</h1>
-        <p class="newsmap-subtitle">How today's news connects to your holdings</p>
-    </div>
+{# Break out of the .container for full-screen immersive mode #}
+<div class="nm">
+
+    {# -- Overlay top bar -------------------------------------------------- #}
+    <header class="nm-topbar">
+        <div class="nm-topbar-left">
+            <a href="/" class="nm-logo">Daily Briefing</a>
+            <span class="nm-sep"></span>
+            <span class="nm-page-title">News Map</span>
+        </div>
+        {% if briefing %}
+        <span class="nm-date">{{ briefing.market_date.strftime('%b %d, %Y') }}</span>
+        {% endif %}
+        <nav class="nm-nav">
+            <a href="/">Dashboard</a>
+            <a href="/portfolio">Portfolio</a>
+            <a href="/briefings">History</a>
+            <a href="/settings">Settings</a>
+        </nav>
+    </header>
+
     {% if briefing %}
-    <span class="briefing-date">{{ briefing.market_date.strftime('%B %d, %Y') }}</span>
-    {% endif %}
-</header>
 
-{% if briefing %}
-<div class="newsmap-container">
-    <div id="newsmap-graph" class="newsmap-graph"></div>
-    <aside id="newsmap-detail" class="newsmap-detail hidden">
-        <button id="newsmap-detail-close" class="detail-close" aria-label="Close">&times;</button>
-        <div id="newsmap-detail-content"></div>
-    </aside>
-</div>
+    {# -- Full-viewport graph canvas --------------------------------------- #}
+    <div id="newsmap-graph" class="nm-graph"></div>
 
-<div class="newsmap-legend">
-    <span class="legend-item positive">&#9679; Positive</span>
-    <span class="legend-item neutral">&#9679; Neutral</span>
-    <span class="legend-item negative">&#9679; Negative</span>
-    <span class="legend-item ticker-node">&#9632; Your Holdings</span>
-</div>
-
-<!-- Briefing HTML is rendered server-side and contains the graph data JSON -->
-<div id="briefing-data-container" style="display:none">
-    {{ briefing.summary_html|safe }}
-</div>
-
-<noscript>
-    <div class="newsmap-fallback">
-        <h2>News Map requires JavaScript</h2>
-        <p>View the <a href="/">Dashboard</a> for a non-interactive briefing.</p>
+    {# -- Floating legend (bottom-left) ------------------------------------ #}
+    <div class="nm-legend">
+        <span class="nm-legend-item" data-sentiment="positive">
+            <span class="nm-dot nm-dot--positive"></span> Positive
+        </span>
+        <span class="nm-legend-item" data-sentiment="neutral">
+            <span class="nm-dot nm-dot--neutral"></span> Neutral
+        </span>
+        <span class="nm-legend-item" data-sentiment="negative">
+            <span class="nm-dot nm-dot--negative"></span> Negative
+        </span>
+        <span class="nm-legend-item">
+            <span class="nm-dot nm-dot--ticker"></span> Holdings
+        </span>
     </div>
-</noscript>
-{% else %}
-<article class="empty-state">
-    <div class="empty-state-icon">&#128506;</div>
-    <h2>No briefing data</h2>
-    <p>Generate a briefing from the <a href="/">Dashboard</a> first, then come back here to explore the news map.</p>
-</article>
-{% endif %}
+
+    {# -- Floating controls (bottom-right) --------------------------------- #}
+    <div class="nm-controls">
+        <button id="nm-zoom-in" class="nm-ctrl-btn" aria-label="Zoom in" title="Zoom in">+</button>
+        <button id="nm-zoom-out" class="nm-ctrl-btn" aria-label="Zoom out" title="Zoom out">&minus;</button>
+        <button id="nm-fit" class="nm-ctrl-btn" aria-label="Fit to screen" title="Fit to screen">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3"/></svg>
+        </button>
+    </div>
+
+    {# -- Slide-out detail sidebar ----------------------------------------- #}
+    <aside id="nm-detail" class="nm-detail">
+        <button id="nm-detail-close" class="nm-detail-close" aria-label="Close panel">&times;</button>
+        <div id="nm-detail-content"></div>
+    </aside>
+
+    {# -- Backdrop for detail panel on mobile ------------------------------ #}
+    <div id="nm-backdrop" class="nm-backdrop"></div>
+
+    {# -- Hidden data container -------------------------------------------- #}
+    <div id="briefing-data-container" style="display:none">
+        {{ briefing.summary_html|safe }}
+    </div>
+
+    <noscript>
+        <div class="nm-noscript">
+            <h2>News Map requires JavaScript</h2>
+            <p>View the <a href="/">Dashboard</a> for a non-interactive briefing.</p>
+        </div>
+    </noscript>
+
+    {% else %}
+    <div class="nm-empty">
+        <div class="nm-empty-icon">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/></svg>
+        </div>
+        <h2>No briefing data</h2>
+        <p>Generate a briefing from the <a href="/">Dashboard</a> first.</p>
+    </div>
+    {% endif %}
+
+</div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.30.4/cytoscape.min.js"></script>
 <script>
@@ -55,48 +97,29 @@
     if (!dataEl || typeof cytoscape === 'undefined') return;
 
     var data;
-    try {
-        data = JSON.parse(dataEl.textContent);
-    } catch (e) {
-        return;
-    }
-
+    try { data = JSON.parse(dataEl.textContent); } catch (e) { return; }
     if (!data.nodes || !data.nodes.length) return;
 
-    var SENTIMENT_COLORS = {
-        positive: '#10b981',
-        negative: '#ef4444',
-        neutral:  '#6b7280'
+    var COLORS = {
+        positive: '#34d399',
+        negative: '#f87171',
+        neutral:  '#94a3b8',
+        ticker_bg: '#1e293b',
+        ticker_border: '#3b82f6',
+        story_bg: '#1e293b',
+        story_border: '#475569',
+        text: '#f1f5f9',
+        text_muted: '#94a3b8'
     };
 
-    // Build Cytoscape elements
+    // Build elements
     var elements = [];
-
     data.nodes.forEach(function(n) {
-        elements.push({
-            data: {
-                id: n.id,
-                label: n.label,
-                type: n.type,
-                _meta: n
-            }
-        });
+        elements.push({ data: { id: n.id, label: n.label, type: n.type, _meta: n } });
     });
-
     data.edges.forEach(function(e) {
-        elements.push({
-            data: {
-                source: e.source,
-                target: e.target,
-                sentiment: e.sentiment,
-                score: e.score,
-                reason: e.reason
-            }
-        });
+        elements.push({ data: { source: e.source, target: e.target, sentiment: e.sentiment, score: e.score, reason: e.reason } });
     });
-
-    var textColor = getComputedStyle(document.documentElement)
-        .getPropertyValue('--pico-color').trim() || '#333';
 
     var cy = cytoscape({
         container: document.getElementById('newsmap-graph'),
@@ -107,16 +130,20 @@
                 style: {
                     'label': 'data(label)',
                     'shape': 'round-rectangle',
-                    'width': 90,
-                    'height': 44,
-                    'background-color': '#1e293b',
+                    'width': 100,
+                    'height': 48,
+                    'background-color': COLORS.ticker_bg,
                     'color': '#ffffff',
                     'text-valign': 'center',
                     'text-halign': 'center',
                     'font-weight': 'bold',
-                    'font-size': '14px',
-                    'border-width': 3,
-                    'border-color': '#3b82f6'
+                    'font-size': '15px',
+                    'font-family': "'Inter', 'Segoe UI', system-ui, sans-serif",
+                    'border-width': 2,
+                    'border-color': COLORS.ticker_border,
+                    'text-outline-width': 0,
+                    'overlay-opacity': 0,
+                    'cursor': 'pointer'
                 }
             },
             {
@@ -124,164 +151,197 @@
                 style: {
                     'label': 'data(label)',
                     'shape': 'round-rectangle',
-                    'width': 'label',
-                    'height': 32,
-                    'padding': '10px',
-                    'background-color': '#f8fafc',
-                    'color': '#334155',
+                    'width': 240,
+                    'height': 56,
+                    'padding': 12,
+                    'background-color': COLORS.story_bg,
+                    'background-opacity': 0.85,
+                    'color': COLORS.text,
                     'text-valign': 'center',
                     'text-halign': 'center',
-                    'font-size': '11px',
-                    'text-max-width': '160px',
-                    'text-wrap': 'ellipsis',
-                    'border-width': 3,
-                    'border-color': '#6b7280'
+                    'font-size': '12px',
+                    'font-family': "'Inter', 'Segoe UI', system-ui, sans-serif",
+                    'text-max-width': 220,
+                    'text-wrap': 'wrap',
+                    'border-width': 2,
+                    'border-color': COLORS.story_border,
+                    'overlay-opacity': 0,
+                    'cursor': 'pointer'
+                }
+            },
+            {
+                selector: 'edge',
+                style: {
+                    'width': 1.5,
+                    'line-color': COLORS.neutral,
+                    'curve-style': 'bezier',
+                    'opacity': 0.5,
+                    'line-style': 'solid'
                 }
             },
             {
                 selector: 'edge[sentiment="positive"]',
-                style: { 'line-color': '#10b981', 'width': 2, 'curve-style': 'bezier' }
+                style: { 'line-color': COLORS.positive, 'width': 2, 'opacity': 0.7 }
             },
             {
                 selector: 'edge[sentiment="negative"]',
-                style: { 'line-color': '#ef4444', 'width': 2, 'curve-style': 'bezier' }
-            },
-            {
-                selector: 'edge[sentiment="neutral"]',
-                style: { 'line-color': '#6b7280', 'width': 1.5, 'curve-style': 'bezier' }
-            },
-            {
-                selector: 'node:active',
-                style: { 'overlay-opacity': 0.1 }
+                style: { 'line-color': COLORS.negative, 'width': 2, 'opacity': 0.7 }
             },
             {
                 selector: 'node.highlighted',
-                style: { 'border-width': 5 }
+                style: { 'border-width': 4, 'background-opacity': 1 }
+            },
+            {
+                selector: 'edge.highlighted',
+                style: { 'width': 3, 'opacity': 1 }
+            },
+            {
+                selector: 'node.dimmed',
+                style: { 'opacity': 0.2 }
+            },
+            {
+                selector: 'edge.dimmed',
+                style: { 'opacity': 0.08 }
             }
         ],
         layout: {
             name: 'cose',
             animate: true,
-            animationDuration: 800,
-            nodeRepulsion: function() { return 6000; },
-            idealEdgeLength: function() { return 100; },
-            gravity: 0.5,
-            numIter: 300,
-            padding: 50,
+            animationDuration: 600,
+            nodeRepulsion: function() { return 12000; },
+            idealEdgeLength: function() { return 160; },
+            gravity: 0.4,
+            numIter: 400,
+            padding: 80,
             fit: true,
-            stop: function() {
-                cy.fit(undefined, 50);
-            }
+            stop: function() { cy.fit(undefined, 60); }
         },
         userZoomingEnabled: true,
         userPanningEnabled: true,
         boxSelectionEnabled: false,
-        minZoom: 0.3,
-        maxZoom: 3
+        wheelSensitivity: 0.3,
+        minZoom: 0.2,
+        maxZoom: 4
     });
 
-    // Color story node borders by average sentiment of connected edges
+    // Color story borders by average sentiment
     data.nodes.forEach(function(n) {
         if (n.type !== 'story') return;
         var edges = data.edges.filter(function(e) { return e.source === n.id; });
         if (!edges.length) return;
-        var avgScore = edges.reduce(function(sum, e) { return sum + e.score; }, 0) / edges.length;
-        var color = avgScore > 0.2 ? SENTIMENT_COLORS.positive
-                  : avgScore < -0.2 ? SENTIMENT_COLORS.negative
-                  : SENTIMENT_COLORS.neutral;
-        var cyNode = cy.getElementById(n.id);
-        if (cyNode.length) cyNode.style('border-color', color);
+        var avg = edges.reduce(function(s, e) { return s + e.score; }, 0) / edges.length;
+        var c = avg > 0.2 ? COLORS.positive : avg < -0.2 ? COLORS.negative : COLORS.neutral;
+        var node = cy.getElementById(n.id);
+        if (node.length) node.style('border-color', c);
     });
 
-    // Detail panel
-    var detailPanel = document.getElementById('newsmap-detail');
-    var detailContent = document.getElementById('newsmap-detail-content');
-    var detailClose = document.getElementById('newsmap-detail-close');
+    // -- Zoom controls
+    function smoothZoom(factor) {
+        var center = { x: cy.width() / 2, y: cy.height() / 2 };
+        cy.animate({ zoom: { level: cy.zoom() * factor, renderedPosition: center } }, { duration: 200 });
+    }
+    document.getElementById('nm-zoom-in').addEventListener('click', function() { smoothZoom(1.15); });
+    document.getElementById('nm-zoom-out').addEventListener('click', function() { smoothZoom(1 / 1.15); });
+    document.getElementById('nm-fit').addEventListener('click', function() {
+        cy.animate({ fit: { padding: 60 } }, { duration: 300 });
+    });
 
-    function escapeHtml(text) {
-        var div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
+    // -- Detail panel
+    var panel = document.getElementById('nm-detail');
+    var panelContent = document.getElementById('nm-detail-content');
+    var backdrop = document.getElementById('nm-backdrop');
+
+    function esc(text) {
+        var d = document.createElement('div');
+        d.textContent = text;
+        return d.innerHTML;
     }
 
-    function showDetail(meta) {
+    function openPanel(meta) {
         var html = '';
         if (meta.type === 'ticker') {
-            html += '<h3>' + escapeHtml(meta.label) + '</h3>';
-            if (meta.name) html += '<p class="detail-name">' + escapeHtml(meta.name) + '</p>';
-            html += '<div class="detail-stats">';
-            html += '<div class="detail-stat"><span class="stat-label">Value</span><span class="stat-value">$' + (meta.value || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) + '</span></div>';
-            var changePct = meta.change_pct || 0;
-            var changeClass = changePct >= 0 ? 'positive' : 'negative';
-            html += '<div class="detail-stat ' + changeClass + '"><span class="stat-label">Today</span><span class="stat-value">' + changePct.toFixed(2) + '%</span></div>';
+            html += '<div class="nm-detail-type">HOLDING</div>';
+            html += '<h3>' + esc(meta.label) + '</h3>';
+            if (meta.name) html += '<p class="nm-detail-name">' + esc(meta.name) + '</p>';
+            html += '<div class="nm-detail-metrics">';
+            html += '<div class="nm-metric"><span class="nm-metric-label">Value</span><span class="nm-metric-value">$' + (meta.value || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) + '</span></div>';
+            var pct = meta.change_pct || 0;
+            var cls = pct >= 0 ? 'positive' : 'negative';
+            html += '<div class="nm-metric nm-metric--' + cls + '"><span class="nm-metric-label">Today</span><span class="nm-metric-value">' + (pct >= 0 ? '+' : '') + pct.toFixed(2) + '%</span></div>';
             html += '</div>';
 
-            // Show connected stories
-            var connectedEdges = data.edges.filter(function(e) { return e.target === meta.id; });
-            if (connectedEdges.length) {
-                html += '<h4>Related Stories</h4><ul class="detail-stories">';
-                connectedEdges.forEach(function(edge) {
-                    var storyNode = data.nodes.find(function(n) { return n.id === edge.source; });
-                    if (storyNode) {
-                        var sentClass = edge.sentiment || 'neutral';
-                        html += '<li class="' + sentClass + '">' + escapeHtml(storyNode.headline || storyNode.label);
-                        if (edge.reason) html += '<br><small>' + escapeHtml(edge.reason) + '</small>';
+            var connected = data.edges.filter(function(e) { return e.target === meta.id; });
+            if (connected.length) {
+                html += '<div class="nm-detail-section-label">Related Stories</div>';
+                html += '<ul class="nm-detail-list">';
+                connected.forEach(function(edge) {
+                    var story = data.nodes.find(function(n) { return n.id === edge.source; });
+                    if (story) {
+                        html += '<li class="nm-detail-list-item nm-sent--' + (edge.sentiment || 'neutral') + '">';
+                        html += '<span class="nm-detail-headline">' + esc(story.headline || story.label) + '</span>';
+                        if (edge.reason) html += '<span class="nm-detail-reason">' + esc(edge.reason) + '</span>';
                         html += '</li>';
                     }
                 });
                 html += '</ul>';
             }
         } else {
-            html += '<h3>' + escapeHtml(meta.headline || meta.label) + '</h3>';
-            if (meta.summary) html += '<p>' + escapeHtml(meta.summary) + '</p>';
+            html += '<div class="nm-detail-type">NEWS</div>';
+            html += '<h3>' + esc(meta.headline || meta.label) + '</h3>';
+            if (meta.summary) html += '<p class="nm-detail-summary">' + esc(meta.summary) + '</p>';
             if (meta.key_facts && meta.key_facts.length) {
-                html += '<ul class="detail-facts">';
-                meta.key_facts.forEach(function(f) {
-                    html += '<li>' + escapeHtml(f) + '</li>';
-                });
+                html += '<div class="nm-detail-section-label">Key Facts</div>';
+                html += '<ul class="nm-detail-facts">';
+                meta.key_facts.forEach(function(f) { html += '<li>' + esc(f) + '</li>'; });
                 html += '</ul>';
             }
-            html += '<p class="source-count">' + (meta.sources || 0) + ' source(s)</p>';
+            html += '<div class="nm-detail-meta">' + (meta.sources || 0) + ' source(s)</div>';
 
-            // Show sentiment per ticker
             var storyEdges = data.edges.filter(function(e) { return e.source === meta.id; });
             if (storyEdges.length) {
-                html += '<h4>Impact on Holdings</h4><ul class="detail-sentiments">';
+                html += '<div class="nm-detail-section-label">Impact on Holdings</div>';
+                html += '<ul class="nm-detail-list">';
                 storyEdges.forEach(function(edge) {
-                    var sentClass = edge.sentiment || 'neutral';
-                    html += '<li class="' + sentClass + '"><strong>' + escapeHtml(edge.target.replace('ticker-', '')) + '</strong>';
-                    html += ' <span class="sentiment-badge ' + sentClass + '">' + edge.sentiment + '</span>';
-                    if (edge.reason) html += '<br><small>' + escapeHtml(edge.reason) + '</small>';
+                    html += '<li class="nm-detail-list-item nm-sent--' + (edge.sentiment || 'neutral') + '">';
+                    html += '<strong>' + esc(edge.target.replace('ticker-', '')) + '</strong>';
+                    html += ' <span class="nm-badge nm-badge--' + (edge.sentiment || 'neutral') + '">' + (edge.sentiment || 'neutral') + '</span>';
+                    if (edge.reason) html += '<span class="nm-detail-reason">' + esc(edge.reason) + '</span>';
                     html += '</li>';
                 });
                 html += '</ul>';
             }
         }
 
-        detailContent.innerHTML = html;
-        detailPanel.classList.remove('hidden');
+        panelContent.innerHTML = html;
+        panel.classList.add('open');
+        backdrop.classList.add('open');
     }
 
+    function closePanel() {
+        panel.classList.remove('open');
+        backdrop.classList.remove('open');
+        cy.elements().removeClass('highlighted dimmed');
+    }
+
+    document.getElementById('nm-detail-close').addEventListener('click', closePanel);
+    backdrop.addEventListener('click', closePanel);
+
     cy.on('tap', 'node', function(evt) {
-        // Remove previous highlights
-        cy.elements().removeClass('highlighted');
-        // Highlight tapped node and its neighborhood
+        cy.elements().removeClass('highlighted dimmed');
         var node = evt.target;
-        node.addClass('highlighted');
-        node.neighborhood().addClass('highlighted');
-        showDetail(node.data('_meta'));
+        var neighborhood = node.neighborhood().add(node);
+        cy.elements().not(neighborhood).addClass('dimmed');
+        neighborhood.addClass('highlighted');
+        openPanel(node.data('_meta'));
     });
 
     cy.on('tap', function(evt) {
-        if (evt.target === cy) {
-            detailPanel.classList.add('hidden');
-            cy.elements().removeClass('highlighted');
-        }
+        if (evt.target === cy) closePanel();
     });
 
-    detailClose.addEventListener('click', function() {
-        detailPanel.classList.add('hidden');
-        cy.elements().removeClass('highlighted');
+    // Keyboard: Escape closes panel
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') closePanel();
     });
 })();
 </script>
