@@ -829,8 +829,100 @@ nav a {
 .flash-error { background: var(--db-red-bg); color: var(--db-red); }
 
 /* ==========================================================================
-   News Map
+   Generation Progress Card
    ========================================================================== */
+
+.gen-progress {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    padding: 1.5rem;
+    border-radius: var(--db-radius);
+    background: var(--db-blue-bg);
+    border: 1px solid var(--db-blue);
+    margin: 1rem 0;
+}
+
+.gen-progress-spinner {
+    width: 28px;
+    height: 28px;
+    min-width: 28px;
+    border: 3px solid var(--db-blue);
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: gen-spin 0.8s linear infinite;
+}
+
+@keyframes gen-spin { to { transform: rotate(360deg); } }
+
+.gen-progress-icon {
+    width: 28px;
+    height: 28px;
+    min-width: 28px;
+    border-radius: 50%;
+    background: var(--db-red);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 1rem;
+}
+
+.gen-progress-text strong {
+    display: block;
+    margin-bottom: 0.25rem;
+}
+
+.gen-progress-text p {
+    margin: 0;
+    font-size: 0.85rem;
+    color: var(--pico-muted-color);
+}
+
+.gen-progress--failed {
+    background: var(--db-red-bg);
+    border-color: var(--db-red);
+}
+
+/* ==========================================================================
+   Toast Notifications
+   ========================================================================== */
+
+#toast-container {
+    position: fixed;
+    bottom: 1.25rem;
+    right: 1.25rem;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.toast {
+    padding: 1rem 1.25rem;
+    border-radius: 8px;
+    background: var(--pico-card-background-color, #fff);
+    border: 1px solid var(--pico-muted-border-color);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+    max-width: 340px;
+    cursor: pointer;
+    transform: translateX(120%);
+    opacity: 0;
+    transition: transform 300ms cubic-bezier(0.4, 0, 0.2, 1), opacity 200ms;
+}
+
+.toast--visible {
+    transform: translateX(0);
+    opacity: 1;
+}
+
+.toast--success { border-left: 4px solid var(--db-green); }
+.toast--error   { border-left: 4px solid var(--db-red); }
+
+.toast strong { display: block; margin-bottom: 0.2rem; font-size: 0.9rem; }
+.toast p { margin: 0; font-size: 0.8rem; color: var(--pico-muted-color); }
+.toast-action { display: inline-block; margin-top: 0.5rem; font-size: 0.8rem; font-weight: 600; }
 
 /* ==========================================================================
    News Map — Full-screen immersive mode
@@ -961,6 +1053,7 @@ body.nm-page { overflow: hidden; margin: 0; padding: 0; }
 .nm-dot--neutral  { background: #94a3b8; }
 .nm-dot--negative { background: #f87171; }
 .nm-dot--ticker   { background: #3b82f6; border-radius: 2px; }
+.nm-dot--macro    { background: #F59E0B; clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%); width: 10px; height: 10px; }
 
 /* -- Floating zoom controls (bottom-right) -------------------------------- */
 .nm-controls {

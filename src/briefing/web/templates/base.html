@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{% block title %}Daily Briefing{% endblock %}</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
-    <link rel="stylesheet" href="/static/style.css?v=3">
+    <link rel="stylesheet" href="/static/style.css?v=4">
     <script src="https://unpkg.com/htmx.org@2.0.4"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
 </head>
@@ -32,5 +32,35 @@
             {% block content %}{% endblock %}
         </main>
     </div>
+
+    <div id="toast-container"></div>
+    <script>
+    (function() {
+        if (!localStorage.getItem('generating')) return;
+        var check = setInterval(function() {
+            fetch('/api/briefings/latest').then(function(r) { return r.json(); }).then(function(data) {
+                if (!data.briefing) return;
+                if (data.briefing.status === 'completed' || data.briefing.status === 'failed') {
+                    localStorage.removeItem('generating');
+                    clearInterval(check);
+                    var ok = data.briefing.status === 'completed';
+                    var container = document.getElementById('toast-container');
+                    var toast = document.createElement('div');
+                    toast.className = 'toast toast--' + (ok ? 'success' : 'error');
+                    toast.innerHTML = '<strong>' + (ok ? 'Briefing ready!' : 'Generation failed') + '</strong>'
+                        + '<p>' + (ok ? 'Your daily briefing has been generated.' : 'Check server logs for details.') + '</p>'
+                        + (ok ? '<a href="/" class="toast-action">View now</a>' : '');
+                    container.appendChild(toast);
+                    requestAnimationFrame(function() { toast.classList.add('toast--visible'); });
+                    setTimeout(function() {
+                        toast.classList.remove('toast--visible');
+                        setTimeout(function() { toast.remove(); }, 300);
+                    }, 8000);
+                    toast.addEventListener('click', function() { toast.remove(); });
+                }
+            }).catch(function() {});
+        }, 3000);
+    })();
+    </script>
 </body>
 </html>

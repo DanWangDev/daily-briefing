@@ -44,6 +44,9 @@
         <span class="nm-legend-item">
             <span class="nm-dot nm-dot--ticker"></span> Holdings
         </span>
+        <span class="nm-legend-item">
+            <span class="nm-dot nm-dot--macro"></span> Macro
+        </span>
     </div>
 
     {# -- Floating controls (bottom-right) --------------------------------- #}
@@ -170,6 +173,26 @@
                 }
             },
             {
+                selector: 'node[type="market"]',
+                style: {
+                    'label': 'data(label)',
+                    'shape': 'diamond',
+                    'width': 72,
+                    'height': 72,
+                    'background-color': '#1a1714',
+                    'color': '#F59E0B',
+                    'text-valign': 'center',
+                    'text-halign': 'center',
+                    'font-weight': 'bold',
+                    'font-size': '12px',
+                    'font-family': "'Inter', 'Segoe UI', system-ui, sans-serif",
+                    'border-width': 2,
+                    'border-color': '#F59E0B',
+                    'overlay-opacity': 0,
+                    'cursor': 'pointer'
+                }
+            },
+            {
                 selector: 'edge',
                 style: {
                     'width': 1.5,
@@ -235,6 +258,14 @@
         if (node.length) node.style('border-color', c);
     });
 
+    // Style edges connected to MARKET hub as dashed amber
+    cy.edges('[target = "ticker-MARKET"]').style({
+        'line-style': 'dashed',
+        'line-color': '#F59E0B',
+        'opacity': 0.4,
+        'width': 1.5
+    });
+
     // -- Zoom controls
     function smoothZoom(factor) {
         var center = { x: cy.width() / 2, y: cy.height() / 2 };
@@ -259,7 +290,27 @@
 
     function openPanel(meta) {
         var html = '';
-        if (meta.type === 'ticker') {
+        if (meta.type === 'market') {
+            html += '<div class="nm-detail-type" style="color:#F59E0B">MACRO & GEOPOLITICAL</div>';
+            html += '<h3>Market-Wide Events</h3>';
+            html += '<p class="nm-detail-summary">News affecting the broader market and economy.</p>';
+
+            var macroEdges = data.edges.filter(function(e) { return e.target === 'ticker-MARKET'; });
+            if (macroEdges.length) {
+                html += '<div class="nm-detail-section-label">' + macroEdges.length + ' Macro Stories</div>';
+                html += '<ul class="nm-detail-list">';
+                macroEdges.forEach(function(edge) {
+                    var story = data.nodes.find(function(n) { return n.id === edge.source; });
+                    if (story) {
+                        html += '<li class="nm-detail-list-item" style="border-left-color:#F59E0B">';
+                        html += '<span class="nm-detail-headline">' + esc(story.headline || story.label) + '</span>';
+                        if (story.summary) html += '<span class="nm-detail-reason">' + esc(story.summary) + '</span>';
+                        html += '</li>';
+                    }
+                });
+                html += '</ul>';
+            }
+        } else if (meta.type === 'ticker') {
             html += '<div class="nm-detail-type">HOLDING</div>';
             html += '<h3>' + esc(meta.label) + '</h3>';
             if (meta.name) html += '<p class="nm-detail-name">' + esc(meta.name) + '</p>';

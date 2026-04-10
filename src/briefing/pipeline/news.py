@@ -205,4 +205,15 @@ def _fallback_grouping(articles: list[NewsItem]) -> list[NeutralizedStory]:
             related_tickers=[ticker],
         ))
 
+    # Collect macro/general articles not assigned to any ticker
+    unassigned = [item for item in articles if item.url not in seen_urls]
+    if unassigned:
+        stories.append(NeutralizedStory(
+            headline="Market & Economy",
+            factual_summary=f"{len(unassigned)} macro/general articles",
+            source_articles=unassigned,
+            key_facts=[i.title for i in unassigned[:5]],
+            related_tickers=[],
+        ))
+
     return stories

@@ -1,0 +1,28 @@
+{% if status == "pending" %}
+<div class="gen-progress"
+     hx-get="/api/briefings/status"
+     hx-trigger="every 2s"
+     hx-target="#briefing-content"
+     hx-swap="innerHTML">
+    <div class="gen-progress-spinner"></div>
+    <div class="gen-progress-text">
+        <strong>Generating briefing...</strong>
+        <p>Collecting news, analyzing with AI, and rendering your briefing.<br>This usually takes 20&ndash;40 seconds.</p>
+    </div>
+</div>
+{% elif status == "failed" %}
+<div class="gen-progress gen-progress--failed">
+    <div class="gen-progress-icon">!</div>
+    <div class="gen-progress-text">
+        <strong>Generation failed</strong>
+        <p>Something went wrong. Check the server logs and try again.</p>
+    </div>
+</div>
+{% else %}
+<div class="gen-progress">
+    <div class="gen-progress-spinner"></div>
+    <div class="gen-progress-text">
+        <strong>Working...</strong>
+    </div>
+</div>
+{% endif %}
