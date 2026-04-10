@@ -6,6 +6,7 @@ from datetime import date
 
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
+from apscheduler.triggers.interval import IntervalTrigger
 
 from briefing.config import AppConfig
 
@@ -38,9 +39,19 @@ def start_scheduler(config: AppConfig) -> None:
         replace_existing=True,
     )
 
+    # Background news collection — free sources every 2 hours
+    _scheduler.add_job(
+        _run_news_collection,
+        trigger=IntervalTrigger(hours=2),
+        args=[config],
+        id="news_collection",
+        replace_existing=True,
+        max_instances=1,
+    )
+
     _scheduler.start()
     logger.info(
-        "Scheduler started: briefing at %s %s",
+        "Scheduler started: briefing at %s %s, news collection every 2h",
         config.schedule.delivery_time,
         config.schedule.timezone,
     )
@@ -67,6 +78,57 @@ def reschedule(config: AppConfig) -> None:
         config.schedule.delivery_time,
         config.schedule.timezone,
     )
+
+
+def _run_news_collection(config: AppConfig) -> None:
+    """Collect news from free sources and cache in DB (called every 2h)."""
+    loop = asyncio.new_event_loop()
+    try:
+        loop.run_until_complete(_async_collection_job(config))
+    finally:
+        loop.close()
+
+
+async def _async_collection_job(config: AppConfig) -> None:
+    """Run free collectors and store articles."""
+    from briefing.collectors.googlenews import GoogleNewsCollector
+    from briefing.collectors.rss import FinancialRSSCollector
+    from briefing.collectors.yahoo import YahooFinanceCollector
+    from briefing.database import get_session
+    from briefing.models import Holding
+    from briefing.pipeline.article_store import store_articles
+
+    session = get_session()
+    try:
+        holdings = session.query(Holding).all()
+        if not holdings:
+            return
+        tickers = [h.ticker for h in holdings]
+        ticker_names = {h.ticker: h.name for h in holdings}
+    finally:
+        session.close()
+
+    logger.info("News collection sweep: %d tickers", len(tickers))
+
+    collectors = [
+        GoogleNewsCollector(),
+        FinancialRSSCollector(ticker_names=ticker_names),
+        YahooFinanceCollector(),
+    ]
+
+    import asyncio as aio
+    tasks = [c.collect(tickers) for c in collectors]
+    results = await aio.gather(*tasks, return_exceptions=True)
+
+    valid = []
+    for collector, result in zip(collectors, results):
+        if isinstance(result, Exception):
+            logger.warning("Collection sweep: %s failed: %s", collector.name(), result)
+        else:
+            valid.append(result)
+
+    new_count = store_articles(valid)
+    logger.info("News collection sweep: %d new articles stored", new_count)
 
 
 def _run_scheduled_briefing(config: AppConfig) -> None:

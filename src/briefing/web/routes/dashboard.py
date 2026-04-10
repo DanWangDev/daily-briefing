@@ -7,7 +7,7 @@ from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse
 
 from briefing.database import get_session
-from briefing.models import Briefing, BriefingSection
+from briefing.models import Briefing, BriefingSection, Holding
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -37,6 +37,16 @@ async def dashboard(request: Request):
             except (json.JSONDecodeError, TypeError):
                 portfolio_snapshot = {}
 
+        # Count cached articles not yet in a briefing
+        new_article_count = 0
+        try:
+            tickers = [h.ticker for h in session.query(Holding).all()]
+            if tickers:
+                from briefing.pipeline.article_store import count_pending_articles
+                new_article_count = count_pending_articles(tickers)
+        except Exception:
+            pass  # non-critical — don't break dashboard
+
         templates = request.app.state.templates
         return templates.TemplateResponse(
             request=request,
@@ -45,6 +55,7 @@ async def dashboard(request: Request):
                 "briefing": latest,
                 "sections": sections,
                 "portfolio_snapshot": portfolio_snapshot,
+                "new_article_count": new_article_count,
             },
         )
     finally:
