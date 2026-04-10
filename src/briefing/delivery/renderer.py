@@ -111,7 +111,7 @@ def render_briefing_html(
 
     parts.append('<section class="briefing-section portfolio-hero">')
     date_fmt = date.today().strftime("%Y\u5e74%m\u6708%d\u65e5") if lang == "zh" else date.today().strftime("%B %d, %Y")
-    parts.append(f'<h2>{_("renderer.portfolio_summary")} &mdash; {date_fmt} {_tts_button(tts_label)}</h2>')
+    parts.append(f'<h2>{_("renderer.portfolio_summary")} &mdash; {date_fmt}</h2>')
     parts.append('<div class="hero-grid">')
 
     # Left: Key metrics
@@ -157,7 +157,7 @@ def render_briefing_html(
     # SECTION 2: Holdings Cards
     # ========================================================================
     parts.append('<section class="briefing-section">')
-    parts.append(f'<h2>{_("renderer.holdings")} {_tts_button(tts_label)}</h2>')
+    parts.append(f'<h2>{_("renderer.holdings")}</h2>')
     parts.append('<div class="holdings-grid">')
 
     for h in holdings_enriched:
@@ -247,7 +247,7 @@ def render_briefing_html(
         )
 
         parts.append('<section class="briefing-section news-section">')
-        parts.append(f'<h2>{_("renderer.news_analysis")} {_tts_button(tts_label)}</h2>')
+        parts.append(f'<h2>{_("renderer.news_analysis")}</h2>')
 
         # Ticker filter pills
         all_news_tickers = sorted({t for s in neutralized_stories for t in s.related_tickers})
@@ -270,7 +270,7 @@ def render_briefing_html(
             )
 
             parts.append(f'<div class="news-card-header">')
-            parts.append(f'<h3>{_escape(story.headline)}</h3>')
+            parts.append(f'<h3>{_escape(story.headline)} {_tts_button(tts_label)}</h3>')
             # Ticker badges with links
             parts.append(f'<div class="ticker-badges">')
             for t in story.related_tickers:
@@ -318,7 +318,7 @@ def render_briefing_html(
     # ========================================================================
     if filing_summaries:
         parts.append('<section class="briefing-section filings-section">')
-        parts.append(f'<h2>{_("renderer.sec_filings")} {_tts_button(tts_label)}</h2>')
+        parts.append(f'<h2>{_("renderer.sec_filings")}</h2>')
         parts.append('<div class="filings-timeline">')
 
         for f in filing_summaries:
