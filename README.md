@@ -1,5 +1,7 @@
 # Daily Briefing
 
+[English](README.md) | [中文](README.zh-CN.md)
+
 Automated financial intelligence for personal portfolios. Collects market data, news, and SEC filings from 6+ sources, neutralizes editorial bias with AI, and delivers a unified daily briefing with an interactive news map.
 
 ## The Problem
