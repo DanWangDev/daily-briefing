@@ -29,13 +29,31 @@
         utterance = null;
     }
 
+    function extractNewsText(card) {
+        var parts = [];
+        // Headline
+        var h3 = card.querySelector('h3');
+        if (h3) parts.push(h3.textContent.replace(/[\u{1F508}\u{1F509}\u{1F50A}\u23F9]/gu, '').trim());
+        // Summary
+        var summary = card.querySelector('.news-summary');
+        if (summary) parts.push(summary.textContent.trim());
+        // Key facts
+        var facts = card.querySelectorAll('.news-facts li');
+        if (facts.length) {
+            facts.forEach(function(li) { parts.push(li.textContent.trim()); });
+        }
+        // Bias check
+        var bias = card.querySelector('.bias-analysis');
+        if (bias) parts.push(bias.textContent.trim());
+        return parts.join('. ');
+    }
+
     function startSpeech(btn) {
-        var section = btn.closest(
-            '.briefing-section, .news-card, .filing-item, .portfolio-hero, .nm-detail, .holding-card'
-        );
+        var card = btn.closest('.news-card');
+        var section = card || btn.closest('.nm-detail');
         if (!section) return;
 
-        var text = (section.textContent || section.innerText || '').trim();
+        var text = card ? extractNewsText(card) : (section.textContent || '').trim();
         if (!text) return;
         if (text.length > 5000) text = text.substring(0, 5000);
 
