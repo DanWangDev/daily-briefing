@@ -952,22 +952,24 @@ button.ticker-filter.active {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 26px;
-    height: 26px;
-    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
     cursor: pointer;
-    font-size: 13px;
-    color: var(--pico-muted-color);
-    background: transparent;
-    transition: color 0.15s, background 0.15s;
+    font-size: 16px;
+    color: var(--db-blue);
+    background: var(--db-blue-bg);
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    transition: color 0.15s, background 0.15s, border-color 0.15s;
     flex-shrink: 0;
     vertical-align: middle;
-    margin-left: 0.3rem;
+    margin-left: 0.5rem;
 }
 
 .tts-btn:hover {
-    color: var(--db-blue);
-    background: var(--db-blue-bg);
+    color: #fff;
+    background: var(--db-blue);
+    border-color: var(--db-blue);
 }
 
 .tts-btn.tts-speaking {
