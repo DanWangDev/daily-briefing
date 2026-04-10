@@ -60,16 +60,18 @@ class NewsArticle(Base):
     __tablename__ = "news_articles"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    briefing_id: Mapped[int] = mapped_column(Integer, nullable=False, index=True)
-    ticker: Mapped[str] = mapped_column(String(10), nullable=False)
+    briefing_id: Mapped[int | None] = mapped_column(Integer, nullable=True, index=True)
+    ticker: Mapped[str | None] = mapped_column(String(10), nullable=True)
+    related_tickers: Mapped[str] = mapped_column(Text, default="[]")
     source: Mapped[str] = mapped_column(String(100), nullable=False)
     title: Mapped[str] = mapped_column(String(500), nullable=False)
-    url: Mapped[str] = mapped_column(String(1000), nullable=False)
+    url: Mapped[str] = mapped_column(String(1000), nullable=False, unique=True)
     published_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
     original_summary: Mapped[str] = mapped_column(Text, default="")
     neutralized_summary: Mapped[str] = mapped_column(Text, default="")
     sentiment_score: Mapped[float] = mapped_column(Float, default=0.0)
     bias_flags: Mapped[str] = mapped_column(Text, default="[]")
+    collected_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
 
 
 class MarketDataCache(Base):

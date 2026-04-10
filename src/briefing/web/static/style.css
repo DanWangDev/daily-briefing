@@ -885,6 +885,24 @@ nav a {
     border-color: var(--db-red);
 }
 
+.generate-group {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.35rem;
+}
+
+.new-articles-badge {
+    display: inline-block;
+    padding: 0.2rem 0.6rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    background: var(--db-blue-bg);
+    color: var(--db-blue);
+    border: 1px solid var(--db-blue);
+}
+
 /* ==========================================================================
    Toast Notifications
    ========================================================================== */

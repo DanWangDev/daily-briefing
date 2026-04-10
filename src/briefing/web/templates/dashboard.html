@@ -6,15 +6,20 @@
         <h1>Daily Briefing</h1>
         <p class="dashboard-subtitle">Your morning financial snapshot</p>
     </div>
-    <button class="generate-btn"
-            hx-post="/api/briefings/generate"
-            hx-target="#briefing-content"
-            hx-swap="innerHTML"
-            hx-disabled-elt="this"
-            onclick="localStorage.setItem('generating','1')">
-        <span class="btn-icon">&#9889;</span>
-        Generate Now
-    </button>
+    <div class="generate-group">
+        <button class="generate-btn"
+                hx-post="/api/briefings/generate"
+                hx-target="#briefing-content"
+                hx-swap="innerHTML"
+                hx-disabled-elt="this"
+                onclick="localStorage.setItem('generating','1')">
+            <span class="btn-icon">&#9889;</span>
+            Generate Now
+        </button>
+        {% if new_article_count %}
+        <span class="new-articles-badge">{{ new_article_count }} new article{{ 's' if new_article_count != 1 }} ready</span>
+        {% endif %}
+    </div>
 </header>
 
 <div id="briefing-content">

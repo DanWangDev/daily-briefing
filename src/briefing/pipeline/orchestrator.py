@@ -51,7 +51,12 @@ async def run_briefing(config: AppConfig) -> int:
         session.close()
 
     try:
-        # Step 1: Collect from all sources concurrently
+        # Step 0: Pull cached articles from background collection
+        from briefing.pipeline.article_store import get_recent_articles, link_to_briefing
+        cached_news = get_recent_articles(tickers, hours=24)
+        logger.info("Article cache: %d articles from last 24h", len(cached_news))
+
+        # Step 1: Collect from all sources concurrently (market data + paid news)
         logger.info("Collecting data for %d tickers: %s", len(tickers), tickers)
         results = await _collect_all(config, tickers, holdings_data)
 
@@ -61,12 +66,14 @@ async def run_briefing(config: AppConfig) -> int:
         # Step 3: Get LLM provider (if configured)
         llm_provider = _get_llm_provider(config)
 
-        # Step 4: Gather news and filings
-        all_news = []
+        # Step 4: Gather news and filings — merge cached + freshly collected
+        all_news = list(cached_news)
         all_filings = []
         for r in results:
             all_news.extend(r.news)
             all_filings.extend(r.filings)
+        logger.info("Total news for processing: %d (%d cached + %d fresh)",
+                     len(all_news), len(cached_news), len(all_news) - len(cached_news))
 
         # Step 5: Process news and filings (can run in parallel)
         neutralized_stories, filing_summaries = await asyncio.gather(
@@ -100,6 +107,10 @@ async def run_briefing(config: AppConfig) -> int:
             session.commit()
         finally:
             session.close()
+
+        # Step 9: Link cached articles to this briefing
+        article_urls = [a.url for a in all_news if a.url]
+        link_to_briefing(briefing_id, article_urls)
 
         logger.info("Briefing #%d completed successfully", briefing_id)
         return briefing_id
