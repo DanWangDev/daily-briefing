@@ -5,9 +5,6 @@ services:
       - "8000:8000"
     volumes:
       - briefing-data:/app/data
-      - ./config.yaml:/app/config.yaml:ro
-    env_file:
-      - .env
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "python", "-c", "import httpx; httpx.get('http://localhost:8000/')"]

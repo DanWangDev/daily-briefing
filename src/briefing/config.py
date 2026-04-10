@@ -93,7 +93,12 @@ class AppConfig(BaseModel):
 
 
 def load_config(config_path: str | Path | None = None) -> AppConfig:
-    """Load config from YAML file. Falls back to defaults if file not found."""
+    """Load config from YAML file.
+
+    Only ``database.path`` is read from the YAML file — all other settings
+    are persisted in the database and hydrated at startup via
+    ``load_settings()``.  Falls back to defaults if no file is found.
+    """
     candidates = [
         config_path,
         Path("config.yaml"),
@@ -107,6 +112,9 @@ def load_config(config_path: str | Path | None = None) -> AppConfig:
         if path.exists():
             with open(path) as f:
                 data = yaml.safe_load(f) or {}
-            return AppConfig.model_validate(data)
+            db_section = data.get("database", {})
+            return AppConfig(
+                database=DatabaseConfig.model_validate(db_section),
+            )
 
     return AppConfig()
