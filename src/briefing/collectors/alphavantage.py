@@ -30,7 +30,7 @@ class AlphaVantageCollector(BaseCollector):
             return CollectorResult(
                 source="alpha_vantage",
                 collected_at=datetime.now(timezone.utc),
-                errors=["ALPHA_VANTAGE_KEY not configured, skipping"],
+                errors=["Alpha Vantage key not configured — set it in Settings"],
             )
 
         quotes: list[TickerQuote] = []

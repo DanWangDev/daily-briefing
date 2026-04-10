@@ -36,12 +36,12 @@ def create_llm_provider(config: LLMConfig) -> BaseLLMProvider:
         case "anthropic":
             from briefing.llm.anthropic_provider import AnthropicProvider
             if not config.api_key:
-                raise ValueError("ANTHROPIC_API_KEY environment variable not set")
+                raise ValueError("Anthropic API key not configured — set it in Settings")
             return AnthropicProvider(api_key=config.api_key, model=config.model)
         case "openai":
             from briefing.llm.openai_provider import OpenAIProvider
             if not config.api_key:
-                raise ValueError("OPENAI_API_KEY environment variable not set")
+                raise ValueError("OpenAI API key not configured — set it in Settings")
             return OpenAIProvider(api_key=config.api_key, model=config.model)
         case "ollama":
             from briefing.llm.ollama_provider import OllamaProvider
@@ -52,7 +52,7 @@ def create_llm_provider(config: LLMConfig) -> BaseLLMProvider:
         case "qwen":
             from briefing.llm.qwen_provider import QwenProvider
             if not config.api_key:
-                raise ValueError("DASHSCOPE_API_KEY environment variable not set")
+                raise ValueError("Qwen API key not configured — set it in Settings")
             return QwenProvider(
                 api_key=config.api_key,
                 model=config.model,

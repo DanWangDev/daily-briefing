@@ -18,6 +18,7 @@ dependencies = [
     "openai>=1.60",
     "python-multipart>=0.0.18",
     "aiosmtplib>=3.0",
+    "cryptography>=44.0",
 ]
 
 [project.optional-dependencies]

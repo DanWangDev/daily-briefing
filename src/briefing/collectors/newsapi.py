@@ -29,7 +29,7 @@ class NewsAPICollector(BaseCollector):
             return CollectorResult(
                 source="newsapi",
                 collected_at=datetime.now(timezone.utc),
-                errors=["NEWSAPI_KEY not configured, skipping"],
+                errors=["NewsAPI key not configured — set it in Settings"],
             )
 
         all_news: list[NewsItem] = []

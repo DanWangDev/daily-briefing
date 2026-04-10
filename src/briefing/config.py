@@ -1,10 +1,18 @@
 from __future__ import annotations
 
-import os
 from pathlib import Path
 
 import yaml
 from pydantic import BaseModel, Field
+
+
+def _mask(key: str) -> str:
+    """Return a masked version of a key for display."""
+    if not key:
+        return ""
+    if len(key) <= 8:
+        return "****"
+    return key[:4] + "****" + key[-4:]
 
 
 class ScheduleConfig(BaseModel):
@@ -24,18 +32,7 @@ class LLMConfig(BaseModel):
 
     def get_api_key(self, provider: str | None = None) -> str | None:
         provider = provider or self.provider
-        # UI-set key takes priority over env var
-        if provider in self._api_keys and self._api_keys[provider]:
-            return self._api_keys[provider]
-        env_map = {
-            "anthropic": "ANTHROPIC_API_KEY",
-            "openai": "OPENAI_API_KEY",
-            "qwen": "DASHSCOPE_API_KEY",
-        }
-        env_var = env_map.get(provider)
-        if env_var:
-            return os.environ.get(env_var)
-        return None
+        return self._api_keys.get(provider) or None
 
     @property
     def api_key(self) -> str | None:
@@ -43,43 +40,25 @@ class LLMConfig(BaseModel):
 
     def api_key_display(self, provider: str) -> str:
         """Return masked key for display, or empty string."""
-        key = self.get_api_key(provider)
-        if not key:
-            return ""
-        if len(key) <= 8:
-            return "****"
-        return key[:4] + "****" + key[-4:]
+        return _mask(self.get_api_key(provider) or "")
 
 
 class ApiKeysConfig(BaseModel):
-    alpha_vantage_env: str = "ALPHA_VANTAGE_KEY"
-    newsapi_env: str = "NEWSAPI_KEY"
-    _direct_keys: dict[str, str] = {}
+    _keys: dict[str, str] = {}
 
     def set_key(self, name: str, key: str) -> None:
-        self._direct_keys[name] = key
-
-    def _get(self, name: str, env_var: str) -> str | None:
-        if name in self._direct_keys and self._direct_keys[name]:
-            return self._direct_keys[name]
-        return os.environ.get(env_var)
+        self._keys[name] = key
 
     @property
     def alpha_vantage(self) -> str | None:
-        return self._get("alpha_vantage", self.alpha_vantage_env)
+        return self._keys.get("alpha_vantage") or None
 
     @property
     def newsapi(self) -> str | None:
-        return self._get("newsapi", self.newsapi_env)
+        return self._keys.get("newsapi") or None
 
     def key_display(self, name: str) -> str:
-        env_map = {"alpha_vantage": self.alpha_vantage_env, "newsapi": self.newsapi_env}
-        key = self._get(name, env_map.get(name, ""))
-        if not key:
-            return ""
-        if len(key) <= 8:
-            return "****"
-        return key[:4] + "****" + key[-4:]
+        return _mask(self._keys.get(name, ""))
 
 
 class EmailConfig(BaseModel):
@@ -87,14 +66,18 @@ class EmailConfig(BaseModel):
     smtp_port: int = 587
     from_address: str = "briefing@example.com"
     to_address: str = "me@example.com"
+    _credentials: dict[str, str] = {}
+
+    def set_credential(self, name: str, value: str) -> None:
+        self._credentials[name] = value
 
     @property
     def username(self) -> str | None:
-        return os.environ.get("EMAIL_USER")
+        return self._credentials.get("username") or None
 
     @property
     def password(self) -> str | None:
-        return os.environ.get("EMAIL_PASS")
+        return self._credentials.get("password") or None
 
 
 class DatabaseConfig(BaseModel):
