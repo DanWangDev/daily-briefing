@@ -3,6 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from fastapi import FastAPI
+from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
@@ -12,6 +13,7 @@ from briefing.web.i18n import get_translator
 WEB_DIR = Path(__file__).parent
 TEMPLATES_DIR = WEB_DIR / "templates"
 STATIC_DIR = WEB_DIR / "static"
+FAVICON_PATH = STATIC_DIR / "favicon.svg"
 
 
 def create_app(config: AppConfig | None = None) -> FastAPI:
@@ -20,6 +22,10 @@ def create_app(config: AppConfig | None = None) -> FastAPI:
 
     app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
     app.state.templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
+
+    @app.get("/favicon.ico", include_in_schema=False)
+    async def favicon():
+        return FileResponse(FAVICON_PATH, media_type="image/svg+xml")
 
     # i18n — inject _() translator and current_lang into all templates
     lang = config.language if config else "en"
