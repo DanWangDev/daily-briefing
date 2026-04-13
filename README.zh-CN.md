@@ -38,6 +38,8 @@ docker-compose up --build
 # 打开 http://localhost:8000
 ```
 
+**Docker 部署的加密密钥**：本应用使用 Fernet 加密存储在本地的 API 密钥。首次启动时会在 `data/.secret_key` 自动生成一个密钥文件，位于持久化数据卷内，因此容器重建后依然有效。如果你希望通过密钥管理系统注入密钥，可以设置容器环境变量 `BRIEFING_SECRET_KEY`，环境变量优先级高于文件。
+
 ## 功能详情
 
 ### 新闻采集（6 个数据源）

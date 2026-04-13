@@ -4,7 +4,8 @@ from __future__ import annotations
 import base64
 import hashlib
 import logging
-import platform
+import os
+import secrets
 from pathlib import Path
 
 from cryptography.fernet import Fernet
@@ -14,6 +15,9 @@ from briefing.config import AppConfig
 from briefing.models import Setting
 
 logger = logging.getLogger(__name__)
+
+_SECRET_KEY_FILE = Path("data/.secret_key")
+_ENV_VAR = "BRIEFING_SECRET_KEY"
 
 # Keys that contain credentials and must be encrypted at rest.
 SECRET_KEYS = frozenset({
@@ -43,16 +47,47 @@ _PLAIN_KEYS = [
 
 
 def _derive_key() -> bytes:
-    """Derive a stable Fernet key from a machine-local seed.
+    """Derive a stable Fernet key that survives container recreation.
 
-    The seed is the combination of hostname + DB path.  This is NOT a
-    password-grade secret — it prevents casual reading of the SQLite file,
-    but anyone with file-system access to both the DB and this source can
-    reproduce the key.  For a single-user local app this is an acceptable
-    trade-off; a future iteration could prompt for a passphrase.
+    Resolution order:
+      1. ``BRIEFING_SECRET_KEY`` env var — deployment-controlled, takes priority
+         so ops can rotate keys without touching files.
+      2. ``data/.secret_key`` file — generated once on first run and kept inside
+         the persistent data volume, so Docker recreations preserve it.
+      3. Fresh generation — cryptographically random 32 bytes, written to the
+         file above for all subsequent runs.
+
+    This is NOT a password-grade secret — it prevents casual reading of the
+    SQLite file, but anyone with file-system access to the data volume can
+    reproduce the key. For a single-user local app this is the same
+    trade-off the previous implementation accepted; the improvement is that
+    it's now stable across container restarts.
     """
-    seed = f"{platform.node()}:daily-briefing".encode()
-    digest = hashlib.sha256(seed).digest()
+    env_seed = os.environ.get(_ENV_VAR)
+    if env_seed:
+        digest = hashlib.sha256(env_seed.encode()).digest()
+        return base64.urlsafe_b64encode(digest)
+
+    if _SECRET_KEY_FILE.exists():
+        try:
+            raw = _SECRET_KEY_FILE.read_bytes().strip()
+            if raw:
+                digest = hashlib.sha256(raw).digest()
+                return base64.urlsafe_b64encode(digest)
+        except OSError as e:
+            logger.warning("Could not read %s: %s — regenerating", _SECRET_KEY_FILE, e)
+
+    # First run (or unreadable file): generate and persist a fresh key.
+    _SECRET_KEY_FILE.parent.mkdir(parents=True, exist_ok=True)
+    raw = secrets.token_bytes(32)
+    _SECRET_KEY_FILE.write_bytes(raw)
+    try:
+        os.chmod(_SECRET_KEY_FILE, 0o600)
+    except OSError:
+        # Windows or filesystems that don't support POSIX perms — best-effort only.
+        pass
+    logger.info("Generated new secret key at %s", _SECRET_KEY_FILE)
+    digest = hashlib.sha256(raw).digest()
     return base64.urlsafe_b64encode(digest)
 
 
