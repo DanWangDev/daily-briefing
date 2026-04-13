@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import json
-from datetime import date
+from datetime import date, timezone
 
 from briefing.schemas import NeutralizedStory, TickerQuote
 
@@ -377,9 +377,19 @@ def render_briefing_html(
             ts.ticker: ts for ts in getattr(story, "ticker_sentiments", [])
         }
 
+        # Defensive: some historical articles may come back tz-naive from the
+        # SQLite cache even after the article_store fix, so normalize to UTC
+        # here to keep max() from crashing on mixed-aware/naive input.
         published_at_iso = None
         if story.source_articles:
-            timestamps = [a.published_at for a in story.source_articles if a.published_at]
+            timestamps = []
+            for a in story.source_articles:
+                if a.published_at is None:
+                    continue
+                dt = a.published_at
+                if dt.tzinfo is None:
+                    dt = dt.replace(tzinfo=timezone.utc)
+                timestamps.append(dt)
             if timestamps:
                 published_at_iso = max(timestamps).isoformat()
 
