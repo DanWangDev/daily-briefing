@@ -114,8 +114,8 @@ Three themes in Settings:
 | Theme | Description |
 |-------|-------------|
 | **Default (Light)** | Clean light theme with blue accents |
-| **Professional (Teal)** | hellointerview.com inspired — teal accents, warmer card backgrounds, rounder corners |
-| **Dark** | hellointerview.com dark mode — warm dark gray (#212B36), teal accents, high contrast |
+| **Professional (Teal)** | teal accents, warmer card backgrounds, rounder corners |
+| **Dark** | warm dark gray, teal accents, high contrast |
 
 ### Generation UX
 
