@@ -76,11 +76,19 @@ def get_recent_articles(tickers: list[str], hours: int = 24) -> list[NewsItem]:
             except (json.JSONDecodeError, TypeError):
                 related = [row.ticker] if row.ticker else []
 
+            # SQLAlchemy's bare DateTime column on SQLite drops timezone info,
+            # so rows come back tz-naive. Re-attach UTC (which is the project's
+            # convention on write) so downstream code can safely compare these
+            # against the tz-aware datetimes that live collectors produce.
+            pub = row.published_at
+            if pub is not None and pub.tzinfo is None:
+                pub = pub.replace(tzinfo=timezone.utc)
+
             items.append(NewsItem(
                 title=row.title,
                 source=row.source,
                 url=row.url,
-                published_at=row.published_at,
+                published_at=pub,
                 snippet=row.original_summary or "",
                 related_tickers=related,
             ))
