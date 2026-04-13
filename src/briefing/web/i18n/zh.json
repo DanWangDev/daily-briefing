@@ -80,6 +80,9 @@
   "newsmap.key_facts": "\u5173\u952e\u4e8b\u5b9e",
   "newsmap.sources": "{count} \u4e2a\u4fe1\u6e90",
   "newsmap.impact": "\u5bf9\u6301\u4ed3\u7684\u5f71\u54cd",
+  "newsmap.legend_size": "\u683c\u5b50\u5927\u5c0f = \u6301\u4ed3\u6743\u91cd \u00d7 \u65b0\u95fb\u5f71\u54cd",
+  "newsmap.legend_freshness": "\u65e7\u95fb\u968f 24 \u5c0f\u65f6\u9010\u6e10\u6dfa\u51fa",
+  "newsmap.empty_no_stories": "\u4eca\u5929\u6682\u65e0\u65b0\u95fb",
 
   "renderer.portfolio_summary": "\u6295\u8d44\u7ec4\u5408\u6982\u89c8",
   "renderer.total_value": "\u603b\u5e02\u503c",

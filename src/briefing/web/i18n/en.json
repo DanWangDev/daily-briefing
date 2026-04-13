@@ -80,6 +80,9 @@
   "newsmap.key_facts": "Key Facts",
   "newsmap.sources": "{count} source(s)",
   "newsmap.impact": "Impact on Holdings",
+  "newsmap.legend_size": "Cell size = portfolio weight × story impact",
+  "newsmap.legend_freshness": "Stale stories fade over 24h",
+  "newsmap.empty_no_stories": "No news today",
 
   "renderer.portfolio_summary": "Portfolio Summary",
   "renderer.total_value": "Total Value",
