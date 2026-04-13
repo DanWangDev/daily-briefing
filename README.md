@@ -94,14 +94,16 @@ General market news (rate decisions, trade wars, inflation data) is captured eve
 
 Configure in Settings. Only one provider active at a time.
 
-### Text-to-Speech (Edge TTS)
+### Text-to-Speech (Kokoro)
 
-Each news card has a speaker icon button. Click to hear the headline, summary, key facts, and bias analysis read aloud using Microsoft Edge neural voices — natural-sounding, free, zero API keys.
+Each news card has a speaker icon button. Click to hear the headline, summary, key facts, and bias analysis read aloud using **Kokoro** — a local 82M-parameter neural TTS model running via ONNX Runtime. Chinese uses [misaki](https://github.com/hexgrad/misaki)'s jieba + pypinyin pipeline for native Mandarin G2P (not espeak's romanization hack). Fully offline after first-run model download, zero API keys.
 
-- **9 voices**: 5 English (Aria, Ava, Emma, Andrew, Brian) + 4 Chinese (Xiaoxiao, Xiaoyi, Yunjian, Yunxi)
-- **Voice selection** in Settings — or "Auto" picks based on current language
-- Audio generated server-side via `edge-tts`, cached as MP3, played via HTML5 Audio
-- Works on all browsers
+- **6 voice presets**: 3 female (Warm, Bright, Calm) + 3 male (Warm, Calm, Energetic) — each maps to one English voice and one Mandarin voice so the same identity reads both languages
+- Automatic language segmentation — a single briefing item with mixed en/zh text is split, each run synthesized through the right pipeline, then concatenated
+- Numbers, percentages, dates, and currency symbols are pronounced correctly in both languages (misaki + cn2an handle Chinese; espeak handles English)
+- First run downloads ~340 MB of model weights (`kokoro-v1.0.onnx` + `voices-v1.0.bin`) from the kokoro-onnx GitHub release into `data/kokoro_models/`
+- CPU-only inference is ~5× real-time on a modern laptop (no GPU required)
+- Audio cached as WAV, played via HTML5 Audio
 
 ### Chinese Language Support (i18n)
 
@@ -171,7 +173,7 @@ Everything else — LLM keys, schedule, email — is configured in Settings and 
                     7. Store briefing
 ```
 
-**Stack**: Python 3.12+ / FastAPI / SQLAlchemy / SQLite / APScheduler / HTMX / Pico CSS / Cytoscape.js / Chart.js / Edge TTS
+**Stack**: Python 3.12+ / FastAPI / SQLAlchemy / SQLite / APScheduler / HTMX / Pico CSS / Cytoscape.js / Chart.js / Kokoro (ONNX) + misaki
 
 ## Project Structure
 

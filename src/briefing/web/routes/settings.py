@@ -7,6 +7,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 
 from briefing.database import get_session
 from briefing.settings_store import save_settings
+from briefing.web.routes.tts import VOICE_PRESETS
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -19,7 +20,13 @@ async def settings_page(request: Request):
     return templates.TemplateResponse(
         request=request,
         name="settings.html",
-        context={"config": config},
+        context={
+            "config": config,
+            "voice_presets": [
+                {"id": pid, "label": label}
+                for pid, (label, _en, _zh) in VOICE_PRESETS.items()
+            ],
+        },
     )
 
 

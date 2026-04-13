@@ -94,14 +94,16 @@ docker-compose up --build
 
 在设置中配置，同一时间只有一个服务商生效。
 
-### 语音朗读（Edge TTS）
+### 语音朗读（Kokoro）
 
-每条新闻卡片旁都有一个朗读按钮。点击后即可听到标题、摘要、关键事实和偏见分析的语音播报，使用微软 Edge 神经网络语音引擎——自然流畅、完全免费、无需 API 密钥。
+每条新闻卡片旁都有一个朗读按钮。点击后即可听到标题、摘要、关键事实和偏见分析的语音播报，使用 **Kokoro**——一个本地运行的 82M 参数神经网络 TTS 模型（通过 ONNX Runtime 推理）。中文朗读通过 [misaki](https://github.com/hexgrad/misaki) 的 jieba + pypinyin 流程生成原生普通话音素，而非 espeak 的拉丁化近似。首次下载模型后完全离线运行，无需 API 密钥。
 
-- **9 种语音**：5 种英文（Aria、Ava、Emma、Andrew、Brian）+ 4 种中文（晓晓、晓伊、云健、云希）
-- 在设置中选择语音，或选择"自动"根据当前语言自动匹配
-- 服务端通过 `edge-tts` 生成音频，缓存为 MP3，通过 HTML5 Audio 播放
-- 所有浏览器均可使用
+- **6 种音色预设**：3 种女声（温暖、明亮、柔和）+ 3 种男声（温暖、沉稳、活力）——每个预设同时对应一个英文音色和一个普通话音色，保持同一"身份"朗读两种语言
+- 自动按语言分段：含中英混合内容的同一条简报会被切分，各段分别走对应的合成流程后拼接
+- 数字、百分比、日期、货币符号在两种语言下都能正确朗读（中文走 misaki + cn2an，英文走 espeak）
+- 首次运行会从 kokoro-onnx 的 GitHub Release 下载约 340 MB 的模型权重（`kokoro-v1.0.onnx` + `voices-v1.0.bin`），保存在 `data/kokoro_models/`
+- 纯 CPU 推理，现代笔记本上约为 5× 实时速度（无需 GPU）
+- 音频缓存为 WAV，通过 HTML5 Audio 播放
 
 ### 中文语言支持（i18n）
 
@@ -171,7 +173,7 @@ database:
                     7. 存储简报
 ```
 
-**技术栈**：Python 3.12+ / FastAPI / SQLAlchemy / SQLite / APScheduler / HTMX / Pico CSS / Cytoscape.js / Chart.js / Edge TTS
+**技术栈**：Python 3.12+ / FastAPI / SQLAlchemy / SQLite / APScheduler / HTMX / Pico CSS / Cytoscape.js / Chart.js / Kokoro（ONNX）+ misaki
 
 ## 项目结构
 
