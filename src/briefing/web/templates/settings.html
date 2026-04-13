@@ -25,28 +25,9 @@
             <label>
                 TTS Voice
                 <select name="tts_voice">
-                    <option value="">Auto ({{ _("settings.language") }})</option>
-                    <optgroup label="English">
-                        {% for v in [
-                            ('en-US-AriaNeural', 'Aria (Female)'),
-                            ('en-US-AvaNeural', 'Ava (Female)'),
-                            ('en-US-EmmaNeural', 'Emma (Female)'),
-                            ('en-US-AndrewNeural', 'Andrew (Male)'),
-                            ('en-US-BrianNeural', 'Brian (Male)'),
-                        ] %}
-                        <option value="{{ v[0] }}" {% if config.tts_voice == v[0] %}selected{% endif %}>{{ v[1] }}</option>
-                        {% endfor %}
-                    </optgroup>
-                    <optgroup label="Chinese">
-                        {% for v in [
-                            ('zh-CN-XiaoxiaoNeural', 'Xiaoxiao 晓晓 (Female)'),
-                            ('zh-CN-XiaoyiNeural', 'Xiaoyi 晓伊 (Female)'),
-                            ('zh-CN-YunjianNeural', 'Yunjian 云健 (Male)'),
-                            ('zh-CN-YunxiNeural', 'Yunxi 云希 (Male)'),
-                        ] %}
-                        <option value="{{ v[0] }}" {% if config.tts_voice == v[0] %}selected{% endif %}>{{ v[1] }}</option>
-                        {% endfor %}
-                    </optgroup>
+                    {% for v in voice_presets %}
+                    <option value="{{ v.id }}" {% if config.tts_voice == v.id %}selected{% endif %}>{{ v.label }}</option>
+                    {% endfor %}
                 </select>
             </label>
         </div>

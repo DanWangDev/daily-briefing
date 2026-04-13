@@ -94,13 +94,14 @@ docker-compose up --build
 
 在设置中配置，同一时间只有一个服务商生效。
 
-### 语音朗读（Edge TTS）
+### 语音朗读（ChatTTS）
 
-每条新闻卡片旁都有一个朗读按钮。点击后即可听到标题、摘要、关键事实和偏见分析的语音播报，使用微软 Edge 神经网络语音引擎——自然流畅、完全免费、无需 API 密钥。
+每条新闻卡片旁都有一个朗读按钮。点击后即可听到标题、摘要、关键事实和偏见分析的语音播报，使用 **ChatTTS** —— 基于 10 万+ 小时对话音频训练的本地双语（中英）神经网络 TTS 模型。首次下载模型后完全离线运行，无需 API 密钥。
 
-- **9 种语音**：5 种英文（Aria、Ava、Emma、Andrew、Brian）+ 4 种中文（晓晓、晓伊、云健、云希）
-- 在设置中选择语音，或选择"自动"根据当前语言自动匹配
-- 服务端通过 `edge-tts` 生成音频，缓存为 MP3，通过 HTML5 Audio 播放
+- **6 种预设音色**：3 种女声（柔和、明亮、自然）+ 3 种男声（温暖、沉稳、活力）—— 每种音色都同时支持中英文
+- 在设置中选择音色
+- 服务端通过 `ChatTTS` 生成音频，缓存为 WAV，通过 HTML5 Audio 播放
+- 首次运行会从 HuggingFace 下载约 1.5 GB 的模型；自动检测 GPU（CUDA），不可用时回退到 CPU
 - 所有浏览器均可使用
 
 ### 中文语言支持（i18n）
@@ -171,7 +172,7 @@ database:
                     7. 存储简报
 ```
 
-**技术栈**：Python 3.12+ / FastAPI / SQLAlchemy / SQLite / APScheduler / HTMX / Pico CSS / Cytoscape.js / Chart.js / Edge TTS
+**技术栈**：Python 3.12+ / FastAPI / SQLAlchemy / SQLite / APScheduler / HTMX / Pico CSS / Cytoscape.js / Chart.js / ChatTTS
 
 ## 项目结构
 

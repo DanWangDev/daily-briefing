@@ -94,13 +94,14 @@ General market news (rate decisions, trade wars, inflation data) is captured eve
 
 Configure in Settings. Only one provider active at a time.
 
-### Text-to-Speech (Edge TTS)
+### Text-to-Speech (ChatTTS)
 
-Each news card has a speaker icon button. Click to hear the headline, summary, key facts, and bias analysis read aloud using Microsoft Edge neural voices — natural-sounding, free, zero API keys.
+Each news card has a speaker icon button. Click to hear the headline, summary, key facts, and bias analysis read aloud using **ChatTTS** — a local, bilingual (English + Mandarin) neural TTS model trained on 100k+ hours of conversational audio. Fully offline after the first-run model download, zero API keys.
 
-- **9 voices**: 5 English (Aria, Ava, Emma, Andrew, Brian) + 4 Chinese (Xiaoxiao, Xiaoyi, Yunjian, Yunxi)
-- **Voice selection** in Settings — or "Auto" picks based on current language
-- Audio generated server-side via `edge-tts`, cached as MP3, played via HTML5 Audio
+- **6 voice presets**: 3 female (Soft, Bright, Neutral) + 3 male (Warm, Calm, Energetic) — each works for both English and Chinese
+- **Voice selection** in Settings
+- Audio generated server-side via `ChatTTS`, cached as WAV, played via HTML5 Audio
+- First run downloads ~1.5 GB model from HuggingFace; auto-uses GPU (CUDA) when available, falls back to CPU
 - Works on all browsers
 
 ### Chinese Language Support (i18n)
@@ -171,7 +172,7 @@ Everything else — LLM keys, schedule, email — is configured in Settings and 
                     7. Store briefing
 ```
 
-**Stack**: Python 3.12+ / FastAPI / SQLAlchemy / SQLite / APScheduler / HTMX / Pico CSS / Cytoscape.js / Chart.js / Edge TTS
+**Stack**: Python 3.12+ / FastAPI / SQLAlchemy / SQLite / APScheduler / HTMX / Pico CSS / Cytoscape.js / Chart.js / ChatTTS
 
 ## Project Structure
 

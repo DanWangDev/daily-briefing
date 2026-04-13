@@ -19,7 +19,11 @@ dependencies = [
     "python-multipart>=0.0.18",
     "aiosmtplib>=3.0",
     "cryptography>=44.0",
-    "edge-tts>=7.0",
+    "ChatTTS>=0.2",
+    "torch>=2.1",
+    "torchaudio>=2.1",
+    "soundfile>=0.12",
+    "numpy>=1.26",
 ]
 
 [project.optional-dependencies]
