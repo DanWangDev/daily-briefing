@@ -118,6 +118,7 @@
   "settings.data_sources": "Data Source API Keys",
   "settings.newsapi_key": "NewsAPI Key",
   "settings.av_key": "Alpha Vantage Key",
+  "settings.massive_key": "Massive (formerly Polygon) API Key",
   "settings.not_configured": "Not configured",
   "settings.keep_keys_hint": "Leave blank to keep current keys.",
   "settings.email_smtp": "Email (SMTP)",

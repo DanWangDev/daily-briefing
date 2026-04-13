@@ -22,6 +22,7 @@ SECRET_KEYS = frozenset({
     "llm.api_key.qwen",
     "api_keys.newsapi",
     "api_keys.alpha_vantage",
+    "api_keys.massive",
     "email.username",
     "email.password",
 })
@@ -92,6 +93,7 @@ def save_settings(session: Session, config: AppConfig) -> None:
         "llm.api_key.qwen": config.llm.get_api_key("qwen"),
         "api_keys.newsapi": config.api_keys.newsapi,
         "api_keys.alpha_vantage": config.api_keys.alpha_vantage,
+        "api_keys.massive": config.api_keys.massive,
         "email.username": config.email.username,
         "email.password": config.email.password,
     }
@@ -161,6 +163,8 @@ def load_settings(session: Session, config: AppConfig) -> None:
         config.api_keys.set_key("newsapi", v)
     if v := _get("api_keys.alpha_vantage"):
         config.api_keys.set_key("alpha_vantage", v)
+    if v := _get("api_keys.massive"):
+        config.api_keys.set_key("massive", v)
 
     # Email
     if v := _get("email.smtp_host"):

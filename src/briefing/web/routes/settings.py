@@ -47,6 +47,7 @@ async def update_settings(
     # Data source keys
     newsapi_key: str = Form(""),
     alpha_vantage_key: str = Form(""),
+    massive_key: str = Form(""),
     # Email
     smtp_host: str = Form("smtp.gmail.com"),
     smtp_port: int = Form(587),
@@ -95,6 +96,8 @@ async def update_settings(
         config.api_keys.set_key("newsapi", newsapi_key.strip())
     if alpha_vantage_key.strip():
         config.api_keys.set_key("alpha_vantage", alpha_vantage_key.strip())
+    if massive_key.strip():
+        config.api_keys.set_key("massive", massive_key.strip())
 
     # Email
     config.email.smtp_host = smtp_host

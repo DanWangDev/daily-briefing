@@ -118,6 +118,7 @@
   "settings.data_sources": "\u6570\u636e\u6e90 API \u5bc6\u94a5",
   "settings.newsapi_key": "NewsAPI \u5bc6\u94a5",
   "settings.av_key": "Alpha Vantage \u5bc6\u94a5",
+  "settings.massive_key": "Massive\uff08\u539f Polygon\uff09API \u5bc6\u94a5",
   "settings.not_configured": "\u672a\u914d\u7f6e",
   "settings.keep_keys_hint": "\u7559\u7a7a\u4ee5\u4fdd\u7559\u5f53\u524d\u5bc6\u94a5\u3002",
   "settings.email_smtp": "\u90ae\u4ef6 (SMTP)",

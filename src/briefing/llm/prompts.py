@@ -44,6 +44,13 @@ def build_neutralize_prompt(
         lines.append(f"Source: {article.source}")
         lines.append(f"Title: {article.title}")
         lines.append(f"Content: {article.snippet[:500]}")
+        if article.prior_sentiments:
+            lines.append("Prior sentiment hints (from upstream source, use as reference — you are free to refine or override):")
+            for ps in article.prior_sentiments:
+                reason = (ps.reason or "").strip()
+                if len(reason) > 240:
+                    reason = reason[:240] + "..."
+                lines.append(f"  - {ps.ticker}: {ps.sentiment}{' — ' + reason if reason else ''}")
         lines.append("")
 
     ticker_block = ""

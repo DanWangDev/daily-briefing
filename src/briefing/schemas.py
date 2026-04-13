@@ -24,6 +24,14 @@ class TickerQuote(BaseModel):
 
 # --- News ---
 
+class TickerSentiment(BaseModel):
+    """Per-ticker sentiment for a specific news story."""
+    ticker: str
+    sentiment: str = "neutral"  # "positive" | "negative" | "neutral"
+    score: float = 0.0          # -1.0 to 1.0
+    reason: str = ""
+
+
 class NewsItem(BaseModel):
     title: str
     source: str
@@ -31,14 +39,10 @@ class NewsItem(BaseModel):
     published_at: datetime
     snippet: str
     related_tickers: list[str] = []
-
-
-class TickerSentiment(BaseModel):
-    """Per-ticker sentiment for a specific news story."""
-    ticker: str
-    sentiment: str = "neutral"  # "positive" | "negative" | "neutral"
-    score: float = 0.0          # -1.0 to 1.0
-    reason: str = ""
+    # Upstream-provided per-ticker sentiment hints (currently only Massive
+    # populates this via its insights[] field). Used by the LLM prompt as a
+    # reference signal — the LLM still produces its own final ticker_sentiments.
+    prior_sentiments: list[TickerSentiment] = []
 
 
 class NeutralizedStory(BaseModel):
