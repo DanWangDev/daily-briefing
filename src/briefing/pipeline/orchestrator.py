@@ -8,6 +8,7 @@ from datetime import date, datetime, timezone
 from briefing.collectors.alphavantage import AlphaVantageCollector
 from briefing.collectors.edgar import EdgarCollector
 from briefing.collectors.googlenews import GoogleNewsCollector
+from briefing.collectors.massive import MassiveCollector
 from briefing.collectors.newsapi import NewsAPICollector
 from briefing.collectors.rss import FinancialRSSCollector
 from briefing.collectors.yahoo import YahooFinanceCollector
@@ -140,6 +141,7 @@ async def _collect_all(
         YahooFinanceCollector(),
         AlphaVantageCollector(config.api_keys),
         NewsAPICollector(config.api_keys),
+        MassiveCollector(config.api_keys),
         GoogleNewsCollector(),
         FinancialRSSCollector(ticker_names=ticker_names),
         EdgarCollector(),

@@ -216,6 +216,12 @@
                        placeholder="{{ config.api_keys.key_display('alpha_vantage') or _('settings.not_configured') }}"
                        autocomplete="off">
             </label>
+            <label>
+                {{ _("settings.massive_key") }}
+                <input type="password" name="massive_key"
+                       placeholder="{{ config.api_keys.key_display('massive') or _('settings.not_configured') }}"
+                       autocomplete="off">
+            </label>
         </div>
         <small>{{ _("settings.keep_keys_hint") }}</small>
     </fieldset>

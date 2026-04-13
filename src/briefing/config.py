@@ -57,6 +57,10 @@ class ApiKeysConfig(BaseModel):
     def newsapi(self) -> str | None:
         return self._keys.get("newsapi") or None
 
+    @property
+    def massive(self) -> str | None:
+        return self._keys.get("massive") or None
+
     def key_display(self, name: str) -> str:
         return _mask(self._keys.get(name, ""))
 
