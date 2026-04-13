@@ -377,6 +377,12 @@ def render_briefing_html(
             ts.ticker: ts for ts in getattr(story, "ticker_sentiments", [])
         }
 
+        published_at_iso = None
+        if story.source_articles:
+            timestamps = [a.published_at for a in story.source_articles if a.published_at]
+            if timestamps:
+                published_at_iso = max(timestamps).isoformat()
+
         graph_data["nodes"].append({
             "id": story_id,
             "type": "story",
@@ -385,6 +391,7 @@ def render_briefing_html(
             "summary": story.factual_summary,
             "key_facts": story.key_facts,
             "sources": len(story.source_articles),
+            "published_at": published_at_iso,
         })
 
         if story.related_tickers:

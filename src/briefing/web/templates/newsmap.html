@@ -27,8 +27,8 @@
 
     {% if briefing %}
 
-    {# -- Full-viewport graph canvas --------------------------------------- #}
-    <div id="newsmap-graph" class="nm-graph"></div>
+    {# -- Full-viewport treemap canvas ------------------------------------- #}
+    <div id="newsmap-graph" class="nm-graph nm-treemap"></div>
 
     {# -- Floating legend (bottom-left) ------------------------------------ #}
     <div class="nm-legend">
@@ -41,21 +41,8 @@
         <span class="nm-legend-item" data-sentiment="negative">
             <span class="nm-dot nm-dot--negative"></span> {{ _("newsmap.negative") }}
         </span>
-        <span class="nm-legend-item">
-            <span class="nm-dot nm-dot--ticker"></span> {{ _("newsmap.holdings") }}
-        </span>
-        <span class="nm-legend-item">
-            <span class="nm-dot nm-dot--macro"></span> {{ _("newsmap.macro") }}
-        </span>
-    </div>
-
-    {# -- Floating controls (bottom-right) --------------------------------- #}
-    <div class="nm-controls">
-        <button id="nm-zoom-in" class="nm-ctrl-btn" aria-label="{{ _('newsmap.zoom_in') }}" title="{{ _('newsmap.zoom_in') }}">+</button>
-        <button id="nm-zoom-out" class="nm-ctrl-btn" aria-label="{{ _('newsmap.zoom_out') }}" title="{{ _('newsmap.zoom_out') }}">&minus;</button>
-        <button id="nm-fit" class="nm-ctrl-btn" aria-label="{{ _('newsmap.fit') }}" title="{{ _('newsmap.fit') }}">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3"/></svg>
-        </button>
+        <span class="nm-legend-item nm-legend-hint">{{ _("newsmap.legend_size") }}</span>
+        <span class="nm-legend-item nm-legend-hint">{{ _("newsmap.legend_freshness") }}</span>
     </div>
 
     {# -- Slide-out detail sidebar ----------------------------------------- #}
@@ -91,13 +78,13 @@
 
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.30.4/cytoscape.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
 <script>
 (function() {
     'use strict';
 
     var dataEl = document.getElementById('newsmap-graph-data');
-    if (!dataEl || typeof cytoscape === 'undefined') return;
+    if (!dataEl || typeof d3 === 'undefined') return;
 
     var data;
     try { data = JSON.parse(dataEl.textContent); } catch (e) { return; }
@@ -107,201 +94,276 @@
         positive: '#34d399',
         negative: '#f87171',
         neutral:  '#94a3b8',
-        ticker_bg: '#1e293b',
-        ticker_border: '#3b82f6',
-        story_bg: '#1e293b',
-        story_border: '#475569',
-        text: '#f1f5f9',
-        text_muted: '#94a3b8'
+        macro:    '#f59e0b'
     };
+    var MARKET_ID = 'ticker-MARKET';
+    var DECAY_HOURS = 24;
+    var DECAY_FLOOR = 0.3;
+    var HEADER_HEIGHT = 30;
+    var PANEL_WIDTH = 380;
+    var PANEL_MARGIN = 16;
 
-    // Build elements
-    var elements = [];
-    data.nodes.forEach(function(n) {
-        elements.push({ data: { id: n.id, label: n.label, type: n.type, _meta: n } });
-    });
-    data.edges.forEach(function(e) {
-        elements.push({ data: { source: e.source, target: e.target, sentiment: e.sentiment, score: e.score, reason: e.reason } });
-    });
+    // Index nodes by id for fast lookup
+    var nodesById = {};
+    data.nodes.forEach(function(n) { nodesById[n.id] = n; });
 
-    var cy = cytoscape({
-        container: document.getElementById('newsmap-graph'),
-        elements: elements,
-        style: [
-            {
-                selector: 'node[type="ticker"]',
-                style: {
-                    'label': 'data(label)',
-                    'shape': 'round-rectangle',
-                    'width': 100,
-                    'height': 48,
-                    'background-color': COLORS.ticker_bg,
-                    'color': '#ffffff',
-                    'text-valign': 'center',
-                    'text-halign': 'center',
-                    'font-weight': 'bold',
-                    'font-size': '15px',
-                    'font-family': "'Inter', 'Segoe UI', system-ui, sans-serif",
-                    'border-width': 2,
-                    'border-color': COLORS.ticker_border,
-                    'text-outline-width': 0,
-                    'overlay-opacity': 0,
-                    'cursor': 'pointer'
-                }
-            },
-            {
-                selector: 'node[type="story"]',
-                style: {
-                    'label': 'data(label)',
-                    'shape': 'round-rectangle',
-                    'width': 240,
-                    'height': 56,
-                    'padding': 12,
-                    'background-color': COLORS.story_bg,
-                    'background-opacity': 0.85,
-                    'color': COLORS.text,
-                    'text-valign': 'center',
-                    'text-halign': 'center',
-                    'font-size': '12px',
-                    'font-family': "'Inter', 'Segoe UI', system-ui, sans-serif",
-                    'text-max-width': 220,
-                    'text-wrap': 'wrap',
-                    'border-width': 2,
-                    'border-color': COLORS.story_border,
-                    'overlay-opacity': 0,
-                    'cursor': 'pointer'
-                }
-            },
-            {
-                selector: 'node[type="market"]',
-                style: {
-                    'label': 'data(label)',
-                    'shape': 'diamond',
-                    'width': 72,
-                    'height': 72,
-                    'background-color': '#1a1714',
-                    'color': '#F59E0B',
-                    'text-valign': 'center',
-                    'text-halign': 'center',
-                    'font-weight': 'bold',
-                    'font-size': '12px',
-                    'font-family': "'Inter', 'Segoe UI', system-ui, sans-serif",
-                    'border-width': 2,
-                    'border-color': '#F59E0B',
-                    'overlay-opacity': 0,
-                    'cursor': 'pointer'
-                }
-            },
-            {
-                selector: 'edge',
-                style: {
-                    'width': 1.5,
-                    'line-color': COLORS.neutral,
-                    'curve-style': 'bezier',
-                    'opacity': 0.5,
-                    'line-style': 'solid'
-                }
-            },
-            {
-                selector: 'edge[sentiment="positive"]',
-                style: { 'line-color': COLORS.positive, 'width': 2, 'opacity': 0.7 }
-            },
-            {
-                selector: 'edge[sentiment="negative"]',
-                style: { 'line-color': COLORS.negative, 'width': 2, 'opacity': 0.7 }
-            },
-            {
-                selector: 'node.highlighted',
-                style: { 'border-width': 4, 'background-opacity': 1 }
-            },
-            {
-                selector: 'edge.highlighted',
-                style: { 'width': 3, 'opacity': 1 }
-            },
-            {
-                selector: 'node.dimmed',
-                style: { 'opacity': 0.2 }
-            },
-            {
-                selector: 'edge.dimmed',
-                style: { 'opacity': 0.08 }
-            }
-        ],
-        layout: {
-            name: 'cose',
-            animate: true,
-            animationDuration: 600,
-            nodeRepulsion: function() { return 12000; },
-            idealEdgeLength: function() { return 160; },
-            gravity: 0.4,
-            numIter: 400,
-            padding: 80,
-            fit: true,
-            stop: function() { cy.fit(undefined, 60); }
-        },
-        userZoomingEnabled: true,
-        userPanningEnabled: true,
-        boxSelectionEnabled: false,
-        wheelSensitivity: 0.3,
-        minZoom: 0.2,
-        maxZoom: 4
-    });
+    // Partition nodes by type
+    var tickers = data.nodes.filter(function(n) { return n.type === 'ticker'; });
+    var market  = data.nodes.find(function(n) { return n.type === 'market'; });
 
-    // Color story borders by average sentiment
-    data.nodes.forEach(function(n) {
-        if (n.type !== 'story') return;
-        var edges = data.edges.filter(function(e) { return e.source === n.id; });
-        if (!edges.length) return;
-        var avg = edges.reduce(function(s, e) { return s + e.score; }, 0) / edges.length;
-        var c = avg > 0.2 ? COLORS.positive : avg < -0.2 ? COLORS.negative : COLORS.neutral;
-        var node = cy.getElementById(n.id);
-        if (node.length) node.style('border-color', c);
-    });
-
-    // Style edges connected to MARKET hub as dashed amber
-    cy.edges('[target = "ticker-MARKET"]').style({
-        'line-style': 'dashed',
-        'line-color': '#F59E0B',
-        'opacity': 0.4,
-        'width': 1.5
-    });
-
-    // -- Zoom controls
-    function smoothZoom(factor) {
-        var center = { x: cy.width() / 2, y: cy.height() / 2 };
-        cy.animate({ zoom: { level: cy.zoom() * factor, renderedPosition: center } }, { duration: 200 });
+    // Sizing for the MARKET hub: prominent but not dominant
+    var avgTickerValue = 0;
+    if (tickers.length) {
+        var sumValues = 0;
+        tickers.forEach(function(t) { sumValues += (t.value || 0); });
+        avgTickerValue = sumValues / tickers.length;
     }
-    document.getElementById('nm-zoom-in').addEventListener('click', function() { smoothZoom(1.15); });
-    document.getElementById('nm-zoom-out').addEventListener('click', function() { smoothZoom(1 / 1.15); });
-    document.getElementById('nm-fit').addEventListener('click', function() {
-        cy.animate({ fit: { padding: 60 } }, { duration: 300 });
-    });
+    var marketCellValue = Math.max(avgTickerValue * 1.3, 1);
 
-    // -- Detail panel
+    function timeDecay(publishedAt) {
+        if (!publishedAt) return 1.0;
+        var t = Date.parse(publishedAt);
+        if (isNaN(t)) return 1.0;
+        var hoursOld = (Date.now() - t) / 3600000;
+        if (hoursOld <= 0) return 1.0;
+        return Math.max(DECAY_FLOOR, 1 - hoursOld / DECAY_HOURS);
+    }
+
+    // Collect the stories that impact a given ticker (or the MARKET hub),
+    // returning leaf objects ready for d3.treemap. A story can appear under
+    // multiple tickers; the same DOM-side highlight logic groups them by
+    // sourceNodeId so all instances light up together.
+    function storiesForTicker(tickerId) {
+        var leaves = [];
+        data.edges.forEach(function(e) {
+            if (e.target !== tickerId) return;
+            var story = nodesById[e.source];
+            if (!story) return;
+            var decay = timeDecay(story.published_at);
+            // Floor of 0.15 keeps neutral / low-impact stories visible.
+            var impact = Math.max(Math.abs(e.score || 0), 0.15);
+            leaves.push({
+                id: story.id + '@' + tickerId,
+                sourceNodeId: story.id,
+                label: story.headline || story.label || '',
+                sentiment: e.sentiment || 'neutral',
+                score: e.score || 0,
+                decay: decay,
+                value: impact * decay,
+                meta: story
+            });
+        });
+        leaves.sort(function(a, b) { return b.value - a.value; });
+        return leaves;
+    }
+
+    var graphContainer = document.getElementById('newsmap-graph');
+
+    function formatMoney(v) {
+        if (v >= 1e9) return (v / 1e9).toFixed(1) + 'B';
+        if (v >= 1e6) return (v / 1e6).toFixed(1) + 'M';
+        if (v >= 1e3) return (v / 1e3).toFixed(1) + 'K';
+        return v.toFixed(0);
+    }
+
+    function esc(text) {
+        var d = document.createElement('div');
+        d.textContent = String(text == null ? '' : text);
+        return d.innerHTML;
+    }
+
+    function render() {
+        var w = graphContainer.clientWidth;
+        var h = graphContainer.clientHeight;
+        if (!w || !h) return;
+
+        // Phase 1: top-level cells (tickers + MARKET) sized by USD.
+        var topItems = tickers.map(function(t) {
+            return {
+                id: t.id,
+                type: 'ticker',
+                label: t.label,
+                meta: t,
+                value: Math.max(t.value || 1, 1)
+            };
+        });
+        if (market) {
+            topItems.push({
+                id: market.id,
+                type: 'market',
+                label: market.label,
+                meta: market,
+                value: marketCellValue
+            });
+        }
+        if (!topItems.length) {
+            var i18n = window.__i18n || {};
+            graphContainer.innerHTML = '<div class="nm-tile-empty">' +
+                esc(i18n['newsmap.empty_no_stories'] || 'No news today') + '</div>';
+            return;
+        }
+
+        var topRoot = d3.hierarchy({ children: topItems })
+            .sum(function(d) { return d.value || 0; })
+            .sort(function(a, b) { return (b.value || 0) - (a.value || 0); });
+
+        d3.treemap()
+            .size([w, h])
+            .tile(d3.treemapSquarify)
+            .paddingInner(4)
+            .round(true)(topRoot);
+
+        graphContainer.innerHTML = '';
+
+        topRoot.leaves().forEach(function(top) {
+            var tw = top.x1 - top.x0;
+            var th = top.y1 - top.y0;
+            if (tw < 12 || th < 12) return;
+
+            var topEl = document.createElement('div');
+            topEl.className = 'nm-tile nm-tile--' + top.data.type;
+            topEl.style.left = top.x0 + 'px';
+            topEl.style.top = top.y0 + 'px';
+            topEl.style.width = tw + 'px';
+            topEl.style.height = th + 'px';
+            topEl.dataset.nodeId = top.data.id;
+
+            // Header
+            var headerEl = document.createElement('div');
+            headerEl.className = 'nm-tile-header';
+            var symbolHtml = '<span class="nm-tile-symbol">' + esc(top.data.label) + '</span>';
+            var metaHtml = '';
+            if (top.data.type === 'ticker') {
+                var v = top.data.meta.value || 0;
+                var pct = top.data.meta.change_pct || 0;
+                var pctClass = pct >= 0 ? 'pos' : 'neg';
+                metaHtml = '<span class="nm-tile-meta">$' + formatMoney(v) +
+                    ' <span class="nm-tile-meta--' + pctClass + '">' +
+                    (pct >= 0 ? '+' : '') + pct.toFixed(1) + '%</span></span>';
+            }
+            headerEl.innerHTML = symbolHtml + metaHtml;
+            topEl.appendChild(headerEl);
+
+            topEl.addEventListener('click', function(e) {
+                if (e.target.closest('.nm-tile--story')) return;
+                e.stopPropagation();
+                if (panel.classList.contains('open')) {
+                    closePanel();
+                    return;
+                }
+                openPanel(top.data.meta, e.clientX);
+                highlight(top.data.id);
+            });
+
+            // Phase 2: nested treemap of story sub-cells inside this top cell.
+            var storyLeaves = storiesForTicker(top.data.id);
+            var subW = tw;
+            var subH = Math.max(0, th - HEADER_HEIGHT);
+            if (storyLeaves.length && subW > 8 && subH > 8) {
+                var subRoot = d3.hierarchy({ children: storyLeaves })
+                    .sum(function(d) { return d.value || 0; })
+                    .sort(function(a, b) { return (b.value || 0) - (a.value || 0); });
+
+                d3.treemap()
+                    .size([subW, subH])
+                    .tile(d3.treemapSquarify)
+                    .paddingInner(2)
+                    .round(true)(subRoot);
+
+                subRoot.leaves().forEach(function(story) {
+                    var sw = story.x1 - story.x0;
+                    var sh = story.y1 - story.y0;
+                    if (sw < 6 || sh < 6) return;
+
+                    var cellEl = document.createElement('div');
+                    var sentClass = 'nm-tile--' + (story.data.sentiment || 'neutral');
+                    cellEl.className = 'nm-tile nm-tile--story ' + sentClass;
+                    if (story.data.decay < 0.5) cellEl.classList.add('nm-tile--stale');
+                    cellEl.style.left = story.x0 + 'px';
+                    cellEl.style.top = (HEADER_HEIGHT + story.y0) + 'px';
+                    cellEl.style.width = sw + 'px';
+                    cellEl.style.height = sh + 'px';
+                    cellEl.dataset.nodeId = story.data.sourceNodeId;
+
+                    if (sw > 50 && sh > 22) {
+                        var labelEl = document.createElement('div');
+                        labelEl.className = 'nm-tile-label';
+                        labelEl.textContent = story.data.label;
+                        cellEl.appendChild(labelEl);
+                    }
+
+                    cellEl.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        if (panel.classList.contains('open')) {
+                            closePanel();
+                            return;
+                        }
+                        openPanel(story.data.meta, e.clientX);
+                        highlight(story.data.sourceNodeId);
+                    });
+
+                    topEl.appendChild(cellEl);
+                });
+            }
+
+            graphContainer.appendChild(topEl);
+        });
+    }
+
+    function highlight(nodeId) {
+        var allTiles = graphContainer.querySelectorAll('.nm-tile');
+        allTiles.forEach(function(t) {
+            if (t.dataset.nodeId === nodeId) {
+                t.classList.add('selected');
+                t.classList.remove('dimmed');
+            } else {
+                t.classList.add('dimmed');
+                t.classList.remove('selected');
+            }
+        });
+    }
+
+    function clearHighlight() {
+        graphContainer.querySelectorAll('.nm-tile').forEach(function(t) {
+            t.classList.remove('dimmed', 'selected');
+        });
+    }
+
+    // -- Detail panel (logic preserved verbatim from the prior implementation) --
     var panel = document.getElementById('nm-detail');
     var panelContent = document.getElementById('nm-detail-content');
     var backdrop = document.getElementById('nm-backdrop');
 
-    function esc(text) {
-        var d = document.createElement('div');
-        d.textContent = text;
-        return d.innerHTML;
-    }
+    function openPanel(meta, clickX) {
+        var i18n = window.__i18n || {};
+        // Decide which side to anchor on. If the click landed in the right
+        // zone that a default right-anchored panel would obscure, slide in
+        // from the left instead. Snap (no transition) when flipping sides
+        // mid-stream so the user doesn't see a slide-out / slide-in pair.
+        var viewportWidth = window.innerWidth;
+        var targetLeft = (typeof clickX === 'number') &&
+            (clickX > viewportWidth - PANEL_WIDTH - PANEL_MARGIN);
+        var currentLeft = panel.classList.contains('nm-detail--left');
+        if (targetLeft !== currentLeft) {
+            panel.style.transition = 'none';
+            panel.classList.toggle('nm-detail--left', targetLeft);
+            // Force reflow so the snap takes effect before transitions resume.
+            void panel.offsetWidth;
+            panel.style.transition = '';
+        }
 
-    function openPanel(meta) {
-        var i18n = window.__i18n;
         var html = '';
         if (meta.type === 'market') {
             html += '<div class="nm-detail-type" style="color:#F59E0B">' + esc(i18n['newsmap.type_macro']) + '</div>';
             html += '<h3>' + esc(i18n['newsmap.market_events']) + '</h3>';
             html += '<p class="nm-detail-summary">' + esc(i18n['newsmap.market_desc']) + '</p>';
 
-            var macroEdges = data.edges.filter(function(e) { return e.target === 'ticker-MARKET'; });
+            var macroEdges = data.edges.filter(function(e) { return e.target === MARKET_ID; });
             if (macroEdges.length) {
-                html += '<div class="nm-detail-section-label">' + esc(i18n['newsmap.macro_stories'].replace('{count}', macroEdges.length)) + '</div>';
+                html += '<div class="nm-detail-section-label">' + esc((i18n['newsmap.macro_stories'] || '').replace('{count}', macroEdges.length)) + '</div>';
                 html += '<ul class="nm-detail-list">';
                 macroEdges.forEach(function(edge) {
-                    var story = data.nodes.find(function(n) { return n.id === edge.source; });
+                    var story = nodesById[edge.source];
                     if (story) {
                         html += '<li class="nm-detail-list-item" style="border-left-color:#F59E0B">';
                         html += '<span class="nm-detail-headline">' + esc(story.headline || story.label) + '</span>';
@@ -327,7 +389,7 @@
                 html += '<div class="nm-detail-section-label">' + esc(i18n['newsmap.related_stories']) + '</div>';
                 html += '<ul class="nm-detail-list">';
                 connected.forEach(function(edge) {
-                    var story = data.nodes.find(function(n) { return n.id === edge.source; });
+                    var story = nodesById[edge.source];
                     if (story) {
                         html += '<li class="nm-detail-list-item nm-sent--' + (edge.sentiment || 'neutral') + '">';
                         html += '<span class="nm-detail-headline">' + esc(story.headline || story.label) + '</span>';
@@ -347,7 +409,7 @@
                 meta.key_facts.forEach(function(f) { html += '<li>' + esc(f) + '</li>'; });
                 html += '</ul>';
             }
-            html += '<div class="nm-detail-meta">' + esc(i18n['newsmap.sources'].replace('{count}', meta.sources || 0)) + '</div>';
+            html += '<div class="nm-detail-meta">' + esc((i18n['newsmap.sources'] || '').replace('{count}', meta.sources || 0)) + '</div>';
 
             var storyEdges = data.edges.filter(function(e) { return e.source === meta.id; });
             if (storyEdges.length) {
@@ -372,28 +434,29 @@
     function closePanel() {
         panel.classList.remove('open');
         backdrop.classList.remove('open');
-        cy.elements().removeClass('highlighted dimmed');
+        clearHighlight();
     }
 
     document.getElementById('nm-detail-close').addEventListener('click', closePanel);
     backdrop.addEventListener('click', closePanel);
-
-    cy.on('tap', 'node', function(evt) {
-        cy.elements().removeClass('highlighted dimmed');
-        var node = evt.target;
-        var neighborhood = node.neighborhood().add(node);
-        cy.elements().not(neighborhood).addClass('dimmed');
-        neighborhood.addClass('highlighted');
-        openPanel(node.data('_meta'));
-    });
-
-    cy.on('tap', function(evt) {
-        if (evt.target === cy) closePanel();
-    });
-
-    // Keyboard: Escape closes panel
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') closePanel();
+    });
+    // Click anywhere outside the panel (and outside a tile) closes it.
+    // Tile click handlers stopPropagation, so they never reach this listener;
+    // clicks inside the panel itself are filtered out via .closest().
+    document.addEventListener('click', function(e) {
+        if (!panel.classList.contains('open')) return;
+        if (e.target.closest('.nm-detail')) return;
+        closePanel();
+    });
+
+    // Initial render + debounced resize
+    render();
+    var resizeTimer;
+    window.addEventListener('resize', function() {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(render, 150);
     });
 })();
 </script>

@@ -1147,6 +1147,164 @@ body.nm-page { overflow: hidden; margin: 0; padding: 0; }
     z-index: 1;
 }
 
+/* -- Treemap tiles -------------------------------------------------------- */
+.nm-treemap {
+    overflow: hidden;
+    background: #0a0f1a;
+    padding: 4px;
+}
+
+.nm-tile {
+    position: absolute;
+    box-sizing: border-box;
+    border-radius: 4px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 150ms ease, box-shadow 150ms ease, opacity 200ms ease, border-color 150ms ease;
+    will-change: transform;
+}
+
+/* Top-level ticker cell */
+.nm-tile--ticker {
+    background: linear-gradient(180deg, #1a2233 0%, #131a28 100%);
+    border: 1px solid #2a3245;
+}
+
+/* Top-level MARKET cell */
+.nm-tile--market {
+    background: linear-gradient(180deg, #2a1f0d 0%, #1a1408 100%);
+    border: 1px solid #5a3f10;
+}
+
+/* Header bar at the top of every top-level cell */
+.nm-tile-header {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 28px;
+    padding: 0 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+    background: rgba(0, 0, 0, 0.25);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    pointer-events: none;
+}
+
+.nm-tile-symbol {
+    font-weight: 700;
+    font-size: 0.85rem;
+    color: #f1f5f9;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.nm-tile--market .nm-tile-symbol { color: #f59e0b; }
+
+.nm-tile-meta {
+    font-size: 0.7rem;
+    color: #94a3b8;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.nm-tile-meta--pos { color: #34d399; }
+.nm-tile-meta--neg { color: #f87171; }
+
+/* Story sub-cells */
+.nm-tile--story {
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    padding: 6px 8px;
+    display: flex;
+    align-items: flex-start;
+    overflow: hidden;
+}
+
+.nm-tile--positive {
+    background: linear-gradient(135deg, rgba(52, 211, 153, 0.32) 0%, rgba(52, 211, 153, 0.16) 100%);
+    border-color: rgba(52, 211, 153, 0.4);
+}
+
+.nm-tile--negative {
+    background: linear-gradient(135deg, rgba(248, 113, 113, 0.32) 0%, rgba(248, 113, 113, 0.16) 100%);
+    border-color: rgba(248, 113, 113, 0.4);
+}
+
+.nm-tile--neutral {
+    background: linear-gradient(135deg, rgba(148, 163, 184, 0.22) 0%, rgba(148, 163, 184, 0.10) 100%);
+    border-color: rgba(148, 163, 184, 0.3);
+}
+
+/* MARKET cell stories use a warmer tint */
+.nm-tile--market .nm-tile--neutral {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.22) 0%, rgba(245, 158, 11, 0.08) 100%);
+    border-color: rgba(245, 158, 11, 0.3);
+}
+
+.nm-tile--stale { opacity: 0.55; }
+
+.nm-tile-label {
+    font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+    font-size: 0.72rem;
+    line-height: 1.25;
+    color: #f1f5f9;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+/* Hover lift — only on the deepest cell under the cursor */
+.nm-tile--story:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
+    border-color: rgba(255, 255, 255, 0.35);
+    z-index: 5;
+}
+
+.nm-tile--ticker:hover, .nm-tile--market:hover {
+    border-color: rgba(255, 255, 255, 0.18);
+}
+
+/* Selection + dimming when the panel is open */
+.nm-tile.selected {
+    box-shadow: 0 0 0 2px #60a5fa, 0 8px 24px rgba(0, 0, 0, 0.5);
+    z-index: 6;
+}
+
+.nm-tile.dimmed {
+    opacity: 0.25;
+}
+
+.nm-tile--story.nm-tile--stale.dimmed {
+    opacity: 0.15;
+}
+
+/* Hint text for the legend (no dot prefix) */
+.nm-legend-hint {
+    font-size: 0.7rem;
+    color: #64748b;
+    font-style: italic;
+}
+
+.nm-tile-empty {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #475569;
+    font-size: 1.1rem;
+    font-style: italic;
+}
+
 /* -- Floating legend (bottom-left) ---------------------------------------- */
 .nm-legend {
     position: absolute;
@@ -1237,6 +1395,25 @@ body.nm-page { overflow: hidden; margin: 0; padding: 0; }
 
 .nm-detail.open {
     transform: translateX(0);
+}
+
+/* Left-anchored variant: used when the clicked tile sits in the right zone
+   that a default right-anchored panel would obscure. */
+.nm-detail--left {
+    left: 0;
+    right: auto;
+    border-left: none;
+    border-right: 1px solid #1e293b;
+    transform: translateX(-100%);
+}
+
+.nm-detail--left.open {
+    transform: translateX(0);
+}
+
+.nm-detail--left .nm-detail-close {
+    right: auto;
+    left: 0.75rem;
 }
 
 .nm-detail-close {
