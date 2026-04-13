@@ -38,6 +38,8 @@ docker-compose up --build
 # Open http://localhost:8000
 ```
 
+**Secret key for Docker deployments.** The app encrypts API keys at rest with a Fernet key stored in `data/.secret_key` on first run — which is inside the persisted data volume, so it survives container recreation. If you'd rather manage the secret externally (e.g., inject from a secret manager), set `BRIEFING_SECRET_KEY` in the container environment and the app will use it instead. The env var takes priority over the file.
+
 ## Features
 
 ### News Collection (6 Sources)
