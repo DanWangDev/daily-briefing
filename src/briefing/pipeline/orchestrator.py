@@ -61,6 +61,26 @@ async def run_briefing(config: AppConfig) -> int:
         logger.info("Collecting data for %d tickers: %s", len(tickers), tickers)
         results = await _collect_all(config, tickers, holdings_data)
 
+        # Per-collector breakdown of fresh news articles. Helps spot dead
+        # collectors (returning 0 every run) and overall freshness at a
+        # glance — easier to scan than the "Total news for processing" line
+        # buried below the LLM logs.
+        fresh_breakdown = {r.source: len(r.news) for r in results if r.news}
+        total_fresh = sum(fresh_breakdown.values())
+        if fresh_breakdown:
+            breakdown_str = ", ".join(
+                f"{src}={n}" for src, n in sorted(
+                    fresh_breakdown.items(), key=lambda kv: -kv[1]
+                )
+            )
+            logger.info(
+                "Collected %d fresh news articles: %s",
+                total_fresh,
+                breakdown_str,
+            )
+        else:
+            logger.info("Collected 0 fresh news articles")
+
         # Step 2: Aggregate market data
         market_data = aggregate_market_data(results)
 
