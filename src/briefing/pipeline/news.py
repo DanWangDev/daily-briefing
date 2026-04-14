@@ -1,10 +1,17 @@
 from __future__ import annotations
 
 import logging
+from datetime import datetime, timedelta, timezone
 
 from briefing.schemas import NewsItem, NeutralizedStory, TickerSentiment
 
 logger = logging.getLogger(__name__)
+
+# Articles older than this are dropped before neutralization. Some collectors
+# (RSS, Google News, Yahoo) return arbitrarily old hits when their search
+# matches a stale headline, and the upstream cache filters by collected_at,
+# not published_at — so a 2-year-old article can land in today's briefing.
+_MAX_ARTICLE_AGE_HOURS = 48
 
 
 async def neutralize_news(
@@ -34,7 +41,15 @@ async def neutralize_news(
     if not news_items:
         return []
 
-    unique_articles = _deduplicate(news_items)
+    deduped = _deduplicate(news_items)
+    unique_articles = _filter_recent(deduped)
+    dropped = len(deduped) - len(unique_articles)
+    if dropped:
+        logger.info(
+            "Filtered %d stale articles (older than %dh)",
+            dropped,
+            _MAX_ARTICLE_AGE_HOURS,
+        )
     if not unique_articles:
         return []
 
@@ -288,6 +303,35 @@ def _macro_fallback_story(
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
+def _filter_recent(items: list[NewsItem]) -> list[NewsItem]:
+    """Drop articles whose ``published_at`` is older than ``_MAX_ARTICLE_AGE_HOURS``.
+
+    The cache layer (``article_store.get_recent_articles``) and the
+    upstream collectors filter by ``collected_at`` (when *we* fetched
+    the article), not ``published_at`` (when the publisher actually
+    emitted it). RSS feeds, Google News, and Yahoo will happily return
+    weeks- or years-old articles when their search hits a stale
+    headline, and those would otherwise sail through dedup, get
+    ticker-tagged via regex, and land in today's briefing. This guard
+    is the single chokepoint that keeps stale content out.
+
+    Articles with ``published_at = None`` are also dropped — without a
+    timestamp we can't trust their freshness.
+    """
+    cutoff = datetime.now(timezone.utc) - timedelta(hours=_MAX_ARTICLE_AGE_HOURS)
+    fresh: list[NewsItem] = []
+    for item in items:
+        pub = item.published_at
+        if pub is None:
+            continue
+        # Defensive: cache hits from the SQLite store can come back tz-naive.
+        if pub.tzinfo is None:
+            pub = pub.replace(tzinfo=timezone.utc)
+        if pub >= cutoff:
+            fresh.append(item)
+    return fresh
+
 
 def _deduplicate(news_items: list[NewsItem]) -> list[NewsItem]:
     """Remove duplicate articles by URL, preserving ticker relationships."""
