@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timezone
 
 import pytest
 
@@ -9,11 +9,14 @@ from briefing.schemas import NewsItem
 
 
 def _make_item(title: str, url: str, tickers: list[str]) -> NewsItem:
+    # Use 'now' rather than a hardcoded date so the _filter_recent guard
+    # (drops articles older than 48h) doesn't cause this fixture to bit-rot
+    # as wall-clock time moves past the original date.
     return NewsItem(
         title=title,
         source="TestSource",
         url=url,
-        published_at=datetime(2026, 4, 10),
+        published_at=datetime.now(timezone.utc),
         snippet=f"Snippet for {title}",
         related_tickers=tickers,
     )
