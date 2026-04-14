@@ -111,14 +111,29 @@
     var tickers = data.nodes.filter(function(n) { return n.type === 'ticker'; });
     var market  = data.nodes.find(function(n) { return n.type === 'market'; });
 
-    // Sizing for the MARKET hub: prominent but not dominant
-    var avgTickerValue = 0;
+    // Sizing for the MARKET hub: median of holding values, not average.
+    // The median is robust against a single oversized position (e.g. one
+    // $70k holding among $3k and $23k peers), so MARKET stays sized
+    // proportional to the "typical" holding rather than the biggest one.
+    var marketCellValue = 1;
     if (tickers.length) {
-        var sumValues = 0;
-        tickers.forEach(function(t) { sumValues += (t.value || 0); });
-        avgTickerValue = sumValues / tickers.length;
+        var sortedValues = tickers
+            .map(function(t) { return t.value || 0; })
+            .sort(function(a, b) { return a - b; });
+        var mid = Math.floor(sortedValues.length / 2);
+        marketCellValue = sortedValues.length % 2
+            ? sortedValues[mid]
+            : (sortedValues[mid - 1] + sortedValues[mid]) / 2;
+        marketCellValue = Math.max(marketCellValue, 1);
     }
-    var marketCellValue = Math.max(avgTickerValue * 1.3, 1);
+
+    // Compress top-level cell values with a 4th root so a 20x dynamic
+    // range (e.g. $70k NVDA next to $3.5k TSLA) becomes a more visually
+    // balanced ~2x area range. The biggest holding still gets the biggest
+    // cell, but small holdings stay readable instead of being crushed
+    // into corners. Sub-cell sizing inside each ticker (story impact ×
+    // time decay) stays linear because that's a different scale.
+    function compress(v) { return Math.pow(Math.max(v, 1), 0.25); }
 
     function timeDecay(publishedAt) {
         if (!publishedAt) return 1.0;
@@ -177,14 +192,15 @@
         var h = graphContainer.clientHeight;
         if (!w || !h) return;
 
-        // Phase 1: top-level cells (tickers + MARKET) sized by USD.
+        // Phase 1: top-level cells (tickers + MARKET) sized by USD,
+        // compressed via 4th root so small holdings remain readable.
         var topItems = tickers.map(function(t) {
             return {
                 id: t.id,
                 type: 'ticker',
                 label: t.label,
                 meta: t,
-                value: Math.max(t.value || 1, 1)
+                value: compress(t.value || 1)
             };
         });
         if (market) {
@@ -193,7 +209,7 @@
                 type: 'market',
                 label: market.label,
                 meta: market,
-                value: marketCellValue
+                value: compress(marketCellValue)
             });
         }
         if (!topItems.length) {
