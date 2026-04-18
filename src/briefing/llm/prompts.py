@@ -92,7 +92,12 @@ def build_neutralize_prompt(
         "- Remove editorializing words (soaring, plummeting, devastating, stunning)\n"
         "- Note where sources disagree on facts or interpretation\n"
         "- Separate 'what happened' from 'what commentators think it means'\n"
-        "- Use the Published dates above as the source of truth for when events occurred; do NOT infer a year from memory\n\n"
+        "- DATE DISCIPLINE: Do NOT invent or insert any date (year, quarter, month, or specific day) "
+        "that is not explicitly stated in the article content above. If the article does not state "
+        "when something happened, write the summary without a date — do not guess, and do not fall back "
+        "on prior knowledge from training data. Treat the Published timestamp above as when the article "
+        "was written; use the Reference date above as \"now\". Any year you emit must come from the "
+        "article text, otherwise omit it.\n\n"
         + ticker_block
         + "Return JSON with:\n"
         "- headline: neutral, factual headline\n"
