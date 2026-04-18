@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timezone
 
 from briefing.llm.prompts import build_cluster_prompt, build_neutralize_prompt
 from briefing.schemas import NewsItem
@@ -61,3 +61,23 @@ class TestBuildNeutralizePrompt:
     def test_empty_tickers_no_sentiment(self):
         prompt = build_neutralize_prompt(_make_items(), related_tickers=[])
         assert "ticker_sentiments" not in prompt
+
+
+class TestDateContext:
+    def test_cluster_prompt_includes_current_date(self):
+        prompt = build_cluster_prompt(_make_items())
+        today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        assert f"today is {today} UTC" in prompt
+
+    def test_neutralize_prompt_includes_current_date(self):
+        prompt = build_neutralize_prompt(_make_items())
+        today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        assert f"today is {today} UTC" in prompt
+
+    def test_neutralize_prompt_includes_per_article_published(self):
+        prompt = build_neutralize_prompt(_make_items())
+        assert "Published: 2026-04-10" in prompt
+
+    def test_cluster_prompt_includes_per_article_published(self):
+        prompt = build_cluster_prompt(_make_items())
+        assert "2026-04-10" in prompt

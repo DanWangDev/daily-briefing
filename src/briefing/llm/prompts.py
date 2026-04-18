@@ -1,13 +1,29 @@
 from __future__ import annotations
 
+from datetime import datetime, timezone
+
 from briefing.schemas import NewsItem
+
+
+def _today_header() -> str:
+    """Current-date anchor so the LLM doesn't hallucinate a stale year."""
+    return f"Reference: today is {datetime.now(timezone.utc).strftime('%Y-%m-%d')} UTC.\n\n"
+
+
+def _fmt_published(article: NewsItem) -> str:
+    if article.published_at is None:
+        return "unknown"
+    pub = article.published_at
+    if pub.tzinfo is None:
+        pub = pub.replace(tzinfo=timezone.utc)
+    return pub.strftime("%Y-%m-%d %H:%M UTC")
 
 
 def build_cluster_prompt(articles: list[NewsItem], locale: str = "en") -> str:
     """Build a prompt for clustering articles by story."""
     lines = []
     for i, article in enumerate(articles):
-        lines.append(f"[{i}] {article.source}: {article.title}")
+        lines.append(f"[{i}] ({_fmt_published(article)}) {article.source}: {article.title}")
         if article.snippet:
             lines.append(f"    {article.snippet[:200]}")
         lines.append("")
@@ -20,7 +36,8 @@ def build_cluster_prompt(articles: list[NewsItem], locale: str = "en") -> str:
         )
 
     return (
-        "Group the following news articles by the story they cover. "
+        _today_header()
+        + "Group the following news articles by the story they cover. "
         "Articles about the same event or topic should be in the same cluster. "
         "Return JSON with a 'clusters' array. Each cluster has a 'story' (short label) "
         "and 'article_indices' (array of integer indices).\n\n"
@@ -42,6 +59,7 @@ def build_neutralize_prompt(
     lines = []
     for article in articles:
         lines.append(f"Source: {article.source}")
+        lines.append(f"Published: {_fmt_published(article)}")
         lines.append(f"Title: {article.title}")
         lines.append(f"Content: {article.snippet[:500]}")
         if article.prior_sentiments:
@@ -67,12 +85,14 @@ def build_neutralize_prompt(
         )
 
     return (
-        "Analyze these articles covering the same story. Produce a neutral summary.\n\n"
+        _today_header()
+        + "Analyze these articles covering the same story. Produce a neutral summary.\n\n"
         "Rules:\n"
         "- Extract ONLY facts reported by 2+ sources, or clearly attribute single-source claims\n"
         "- Remove editorializing words (soaring, plummeting, devastating, stunning)\n"
         "- Note where sources disagree on facts or interpretation\n"
-        "- Separate 'what happened' from 'what commentators think it means'\n\n"
+        "- Separate 'what happened' from 'what commentators think it means'\n"
+        "- Use the Published dates above as the source of truth for when events occurred; do NOT infer a year from memory\n\n"
         + ticker_block
         + "Return JSON with:\n"
         "- headline: neutral, factual headline\n"
