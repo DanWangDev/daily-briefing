@@ -55,7 +55,7 @@ _FEEDS: list[tuple[str, str]] = [
     ),
 ]
 
-_MAX_MACRO_ARTICLES = 10
+_MAX_MACRO_ARTICLES = 20
 
 _MACRO_KEYWORDS = frozenset([
     "federal reserve", "fed ", "interest rate", "rate hike", "rate cut",

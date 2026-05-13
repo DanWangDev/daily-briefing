@@ -73,13 +73,15 @@ async def neutralize_news(
 
     if ticker_articles:
         try:
-            stories.extend(
-                await _neutralize_ticker_articles(
-                    ticker_articles, llm_provider, locale, lang_suffix
-                )
+            logger.info("Starting LLM clustering for %d ticker articles", len(ticker_articles))
+            ticker_stories = await _neutralize_ticker_articles(
+                ticker_articles, llm_provider, locale, lang_suffix
             )
+            logger.info("LLM clustering produced %d stories from %d articles",
+                        len(ticker_stories), len(ticker_articles))
+            stories.extend(ticker_stories)
         except Exception as exc:  # noqa: BLE001
-            logger.error("Ticker news neutralization failed: %s", exc)
+            logger.error("Ticker news neutralization failed (falling back to per-ticker grouping): %s", exc)
             stories.extend(_fallback_grouping(ticker_articles))
 
     if macro_articles:
@@ -142,6 +144,7 @@ async def _neutralize_ticker_articles(
 
     clusters = cluster_resp.get("clusters", [])
     if not clusters:
+        logger.warning("LLM clustering returned 0 clusters for %d articles — using single fallback cluster", len(articles))
         clusters = [
             {
                 "story": "News roundup",
@@ -373,7 +376,7 @@ def _fallback_grouping(articles: list[NewsItem]) -> list[NeutralizedStory]:
             headline=f"News for {ticker}",
             factual_summary=f"{len(fresh)} articles found",
             source_articles=fresh,
-            key_facts=[i.title for i in fresh[:5]],
+            key_facts=[i.title for i in fresh[:15]],
             related_tickers=[ticker],
         ))
 

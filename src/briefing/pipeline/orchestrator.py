@@ -162,7 +162,7 @@ async def _collect_all(
         AlphaVantageCollector(config.api_keys),
         NewsAPICollector(config.api_keys),
         MassiveCollector(config.api_keys),
-        GoogleNewsCollector(),
+        GoogleNewsCollector(ticker_names=ticker_names),
         FinancialRSSCollector(ticker_names=ticker_names),
         EdgarCollector(),
     ]
