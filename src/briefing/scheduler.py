@@ -111,7 +111,7 @@ async def _async_collection_job(config: AppConfig) -> None:
     logger.info("News collection sweep: %d tickers", len(tickers))
 
     collectors = [
-        GoogleNewsCollector(),
+        GoogleNewsCollector(ticker_names=ticker_names),
         FinancialRSSCollector(ticker_names=ticker_names),
         YahooFinanceCollector(),
     ]

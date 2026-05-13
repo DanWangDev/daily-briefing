@@ -300,7 +300,7 @@ def render_briefing_html(
             if story.source_articles:
                 parts.append('<div class="news-sources">')
                 source_links = []
-                for article in story.source_articles[:5]:
+                for article in story.source_articles:
                     source_links.append(
                         f'<a href="{_escape(article.url)}" target="_blank" '
                         f'rel="noopener">{_escape(article.source)}</a>'

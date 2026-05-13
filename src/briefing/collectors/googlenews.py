@@ -12,15 +12,16 @@ from briefing.schemas import CollectorResult, NewsItem
 logger = logging.getLogger(__name__)
 
 _GOOGLE_NEWS_RSS = "https://news.google.com/rss/search"
-_MAX_ARTICLES_PER_TICKER = 5
+_MAX_ARTICLES_PER_TICKER = 15
 _USER_AGENT = "Mozilla/5.0 (compatible; DailyBriefing/0.1)"
 
 
 class GoogleNewsCollector(BaseCollector):
     """Collects financial news from Google News RSS feeds. Free, no API key."""
 
-    def __init__(self) -> None:
+    def __init__(self, ticker_names: dict[str, str] | None = None) -> None:
         self._rate_limiter = RateLimiter(calls_per_period=1, period_seconds=1.0)
+        self._ticker_names = ticker_names or {}
 
     def name(self) -> str:
         return "Google News"
@@ -37,10 +38,15 @@ class GoogleNewsCollector(BaseCollector):
             for ticker in tickers:
                 try:
                     await self._rate_limiter.acquire()
+                    # Include company name in search for small-cap tickers
+                    query = f"{ticker} stock"
+                    name = self._ticker_names.get(ticker, "")
+                    if name:
+                        query = f"{ticker} {name} stock"
                     resp = await client.get(
                         _GOOGLE_NEWS_RSS,
                         params={
-                            "q": f"{ticker} stock",
+                            "q": query,
                             "hl": "en-US",
                             "gl": "US",
                             "ceid": "US:en",

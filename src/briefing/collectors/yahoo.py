@@ -94,7 +94,7 @@ class YahooFinanceCollector(BaseCollector):
             # Fetch news separately so a failure doesn't block quotes
             try:
                 raw_news = yf_ticker.news or []
-                for item in raw_news[:5]:
+                for item in raw_news[:15]:
                     content = item.get("content", {})
                     title = content.get("title")
                     if not title:
