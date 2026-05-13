@@ -190,16 +190,31 @@ async def _neutralize_ticker_articles(
                 },
             }
 
-        neutral_resp = await llm_provider.complete_json(
-            system=(
-                "You are a neutral financial news analyst. Your job is to strip "
-                "editorial bias and present only verified facts. Identify where "
-                "sources disagree. Never editorialize. Use precise, neutral language."
-                + lang_suffix
-            ),
-            user=neutralize_prompt,
-            schema={"type": "object", "properties": output_props},
-        )
+        try:
+            neutral_resp = await llm_provider.complete_json(
+                system=(
+                    "You are a neutral financial news analyst. Your job is to strip "
+                    "editorial bias and present only verified facts. Identify where "
+                    "sources disagree. Never editorialize. Use precise, neutral language."
+                    + lang_suffix
+                ),
+                user=neutralize_prompt,
+                schema={"type": "object", "properties": output_props},
+            )
+        except Exception as exc:  # noqa: BLE001
+            logger.warning(
+                "Neutralize failed for cluster=%r (%d articles), using raw fallback: %s",
+                cluster.get("story", "?"),
+                len(cluster_articles),
+                exc,
+            )
+            stories.append(_cluster_fallback_story(
+                cluster.get("story", "News"),
+                cluster_articles,
+                all_tickers,
+                locale,
+            ))
+            continue
 
         raw_sentiments = neutral_resp.get("ticker_sentiments", [])
         ticker_sentiments = [
@@ -282,6 +297,32 @@ async def _neutralize_macro_bundle(
         bias_analysis=neutral_resp.get("bias_analysis", ""),
         key_facts=neutral_resp.get("key_facts", []),
         related_tickers=[],
+        ticker_sentiments=[],
+    )
+
+
+def _cluster_fallback_story(
+    story_label: str,
+    articles: list[NewsItem],
+    tickers: list[str],
+    locale: str,
+) -> NeutralizedStory:
+    """Per-cluster fallback when the LLM neutralize call fails (e.g. content filter).
+
+    Produces a basic story from the raw article data so one blocked cluster
+    doesn't kill the entire ticker neutralization.
+    """
+    headline = (
+        f"{', '.join(tickers)}: {story_label}"
+        if tickers
+        else story_label
+    )
+    return NeutralizedStory(
+        headline=headline,
+        factual_summary=f"{len(articles)} articles",
+        source_articles=articles,
+        key_facts=[a.title for a in articles[:15]],
+        related_tickers=tickers,
         ticker_sentiments=[],
     )
 
