@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 
 class OpenAIProvider(BaseLLMProvider):
-    def __init__(self, api_key: str, model: str = "gpt-4o-mini") -> None:
+    def __init__(self, api_key: str, model: str) -> None:
         self._client = openai.AsyncOpenAI(api_key=api_key)
         self._model = model
 
