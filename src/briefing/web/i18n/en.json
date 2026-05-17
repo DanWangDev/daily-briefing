@@ -27,6 +27,11 @@
   "gen.no_holdings": "No holdings",
   "gen.add_tickers": "Add tickers in Portfolio first.",
 
+  "generate.error_title": "Configuration Required",
+  "generate.error_no_provider": "No LLM provider selected. Go to Settings to choose an LLM provider and configure an API key before generating a briefing.",
+  "generate.error_no_model": "No model configured. Go to Settings to set a model name for your LLM provider before generating a briefing.",
+  "generate.error_no_api_key": "No API key configured. Go to Settings to set your API key before generating a briefing.",
+
   "portfolio.title": "Portfolio",
   "portfolio.add_holding": "Add Holding",
   "portfolio.ticker": "Ticker",

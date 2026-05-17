@@ -32,6 +32,10 @@ class BaseLLMProvider(ABC):
 
 def create_llm_provider(config: LLMConfig) -> BaseLLMProvider:
     """Factory function to create the configured LLM provider."""
+    if not config.provider:
+        raise ValueError("No LLM provider configured — select one in Settings")
+    if not config.model:
+        raise ValueError("No model configured — set a model in Settings")
     match config.provider:
         case "anthropic":
             from briefing.llm.anthropic_provider import AnthropicProvider

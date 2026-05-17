@@ -76,6 +76,17 @@ async def generate_briefing(request: Request):
             context={"status": "pending"},
         )
 
+    # Validate LLM configuration
+    llm_error = _validate_llm_config(config)
+    if llm_error:
+        logger.warning("LLM config invalid: %s", llm_error)
+        templates = request.app.state.templates
+        return templates.TemplateResponse(
+            request=request,
+            name="partials/generation_error.html",
+            context={"error": llm_error},
+        )
+
     # Verify portfolio has holdings
     session = get_session()
     try:
@@ -97,6 +108,20 @@ async def generate_briefing(request: Request):
         name="partials/generation_status.html",
         context={"status": "pending"},
     )
+
+
+def _validate_llm_config(config) -> str | None:
+    """Check that LLM is configured and has an API key. Returns i18n error key or None."""
+    llm = config.llm
+    if not llm.provider:
+        return "generate.error_no_provider"
+    if not llm.model:
+        return "generate.error_no_model"
+    if llm.provider != "ollama":
+        key = llm.api_key
+        if not key or not key.strip():
+            return "generate.error_no_api_key"
+    return None
 
 
 async def _run_generation(config) -> None:
