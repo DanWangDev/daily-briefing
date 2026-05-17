@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 
 class AnthropicProvider(BaseLLMProvider):
-    def __init__(self, api_key: str, model: str = "claude-haiku-4-5-20251001") -> None:
+    def __init__(self, api_key: str, model: str) -> None:
         self._client = anthropic.AsyncAnthropic(api_key=api_key)
         self._model = model
 

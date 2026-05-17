@@ -18,7 +18,7 @@ class QwenProvider(BaseLLMProvider):
     def __init__(
         self,
         api_key: str,
-        model: str = "qwen-plus",
+        model: str,
         base_url: str = QWEN_BASE_URL,
     ) -> None:
         self._client = openai.AsyncOpenAI(api_key=api_key, base_url=base_url)

@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 
 class OllamaProvider(BaseLLMProvider):
-    def __init__(self, base_url: str = "http://localhost:11434", model: str = "llama3") -> None:
+    def __init__(self, model: str, base_url: str = "http://localhost:11434") -> None:
         self._base_url = base_url.rstrip("/")
         self._model = model
 

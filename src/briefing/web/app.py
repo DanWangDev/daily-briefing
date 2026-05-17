@@ -33,6 +33,9 @@ def create_app(config: AppConfig | None = None) -> FastAPI:
     app.state.templates.env.globals["current_lang"] = lang
     app.state.templates.env.globals["theme"] = config.theme if config else "light"
 
+    from briefing.llm.models import PROVIDER_META
+    app.state.templates.env.globals["provider_meta"] = PROVIDER_META
+
     from briefing.web.routes.dashboard import router as dashboard_router
     from briefing.web.routes.portfolio import router as portfolio_router
     from briefing.web.routes.briefings import router as briefings_router

@@ -108,97 +108,48 @@
         <label>
             {{ _("settings.active_provider") }}
             <select name="llm_provider" id="llm-provider-select">
-                <option value="anthropic" {{ 'selected' if config.llm.provider == 'anthropic' }}>Anthropic (Claude)</option>
-                <option value="openai" {{ 'selected' if config.llm.provider == 'openai' }}>OpenAI</option>
-                <option value="qwen" {{ 'selected' if config.llm.provider == 'qwen' }}>Alibaba Cloud (Qwen)</option>
-                <option value="ollama" {{ 'selected' if config.llm.provider == 'ollama' }}>Ollama (Local)</option>
+                {% for pid, pmeta in provider_meta.items() %}
+                <option value="{{ pid }}" {{ 'selected' if config.llm.provider == pid }}>{{ pmeta.display }}</option>
+                {% endfor %}
             </select>
         </label>
 
-        <div class="llm-config-section" data-provider="anthropic">
-            <div class="form-row">
-                <label>
-                    {{ _("settings.model") }}
-                    <input type="text" name="anthropic_model" value="{{ config.llm.model if config.llm.provider == 'anthropic' else 'claude-haiku-4-5-20251001' }}">
-                </label>
-                <label>
-                    {{ _("settings.api_key") }}
-                    <input type="password" name="anthropic_api_key"
-                           placeholder="{{ config.llm.api_key_display('anthropic') or 'sk-ant-...' }}"
-                           autocomplete="off">
-                </label>
-            </div>
-            <small>{{ _("settings.keep_key_hint") }}</small>
-        </div>
+        <datalist id="model-suggestions"></datalist>
 
-        <div class="llm-config-section" data-provider="openai">
+        {% for pid, pmeta in provider_meta.items() %}
+        <div class="llm-config-section" data-provider="{{ pid }}">
             <div class="form-row">
                 <label>
                     {{ _("settings.model") }}
-                    <input type="text" name="openai_model" value="{{ config.llm.model if config.llm.provider == 'openai' else 'gpt-4o-mini' }}">
+                    <input type="text" name="model" list="model-suggestions"
+                           value="{{ config.llm.model if config.llm.provider == pid else '' }}"
+                           placeholder="Loading models...">
                 </label>
+                {% if pmeta.requires_api_key %}
                 <label>
                     {{ _("settings.api_key") }}
-                    <input type="password" name="openai_api_key"
-                           placeholder="{{ config.llm.api_key_display('openai') or 'sk-...' }}"
+                    <input type="password" name="{{ pid }}_api_key"
+                           placeholder="{{ config.llm.api_key_display(pid) or pmeta.key_placeholder }}"
                            autocomplete="off">
                 </label>
+                {% endif %}
             </div>
-            <small>{{ _("settings.keep_key_hint") }}</small>
-        </div>
-
-        <div class="llm-config-section" data-provider="qwen">
-            <div class="form-row">
-                <label>
-                    {{ _("settings.model") }}
-                    <select name="qwen_model">
-                        {% set qm = config.llm.model if config.llm.provider == 'qwen' else 'qwen-plus' %}
-                        <optgroup label="Qwen-Plus (Balanced)">
-                            <option value="qwen-plus" {{ 'selected' if qm == 'qwen-plus' }}>Qwen Plus</option>
-                            <option value="qwen-plus-latest" {{ 'selected' if qm == 'qwen-plus-latest' }}>Qwen Plus (Latest)</option>
-                        </optgroup>
-                        <optgroup label="Qwen-Turbo (Fast &amp; Cheap)">
-                            <option value="qwen-turbo" {{ 'selected' if qm == 'qwen-turbo' }}>Qwen Turbo</option>
-                            <option value="qwen-turbo-latest" {{ 'selected' if qm == 'qwen-turbo-latest' }}>Qwen Turbo (Latest)</option>
-                        </optgroup>
-                        <optgroup label="Qwen-Max (Most Capable)">
-                            <option value="qwen-max" {{ 'selected' if qm == 'qwen-max' }}>Qwen Max</option>
-                            <option value="qwen-max-latest" {{ 'selected' if qm == 'qwen-max-latest' }}>Qwen Max (Latest)</option>
-                        </optgroup>
-                        <optgroup label="Qwen Long Context">
-                            <option value="qwen-long" {{ 'selected' if qm == 'qwen-long' }}>Qwen Long</option>
-                        </optgroup>
-                    </select>
-                </label>
-                <label>
-                    {{ _("settings.api_key") }}
-                    <input type="password" name="qwen_api_key"
-                           placeholder="{{ config.llm.api_key_display('qwen') or 'sk-...' }}"
-                           autocomplete="off">
-                </label>
-            </div>
+            {% if pmeta.get('has_base_url') %}
             <div class="form-row">
                 <label>
                     {{ _("settings.base_url") }}
-                    <input type="text" name="qwen_base_url" value="{{ config.llm.base_url if config.llm.provider == 'qwen' else 'https://dashscope-intl.aliyuncs.com/compatible-mode/v1' }}">
+                    <input type="text" name="{{ pid }}_base_url"
+                           value="{{ config.llm.base_url if config.llm.provider == pid else pmeta.get('default_base_url', '') }}">
                 </label>
             </div>
+            {% endif %}
+            {% if pmeta.get('hint_key') %}
+            <small>{{ _(pmeta.hint_key) }}</small>
+            {% elif pmeta.requires_api_key %}
             <small>{{ _("settings.keep_key_hint") }}</small>
+            {% endif %}
         </div>
-
-        <div class="llm-config-section" data-provider="ollama">
-            <div class="form-row">
-                <label>
-                    {{ _("settings.model") }}
-                    <input type="text" name="ollama_model" value="{{ config.llm.model if config.llm.provider == 'ollama' else 'llama3' }}">
-                </label>
-                <label>
-                    {{ _("settings.base_url") }}
-                    <input type="text" name="ollama_base_url" value="{{ config.llm.base_url or 'http://localhost:11434' }}">
-                </label>
-            </div>
-            <small>{{ _("settings.ollama_hint") }}</small>
-        </div>
+        {% endfor %}
     </fieldset>
 
     <fieldset>
@@ -271,11 +222,38 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const select = document.getElementById('llm-provider-select');
+    const datalist = document.getElementById('model-suggestions');
+
     function updateSections() {
+        const provider = select.value;
         document.querySelectorAll('.llm-config-section').forEach(function(section) {
-            section.style.display = section.dataset.provider === select.value ? 'block' : 'none';
+            const isActive = section.dataset.provider === provider;
+            section.style.display = isActive ? 'block' : 'none';
+            section.querySelectorAll('input, select').forEach(function(el) {
+                el.disabled = !isActive;
+            });
         });
+        loadModels(provider);
     }
+
+    async function loadModels(provider) {
+        datalist.innerHTML = '';
+        try {
+            const resp = await fetch('/api/models?provider=' + encodeURIComponent(provider));
+            const data = await resp.json();
+            datalist.innerHTML = data.models.map(function(m) {
+                return '<option value="' + m.id.replace(/"/g, '&quot;') + '">' +
+                       (m.display || m.id).replace(/</g, '&lt;') + '</option>';
+            }).join('');
+            if (data.error) {
+                const input = document.querySelector('.llm-config-section[data-provider="' + provider + '"] input[name="model"]');
+                if (input) input.placeholder = data.error;
+            }
+        } catch (e) {
+            // Keep current value, datalist stays empty
+        }
+    }
+
     select.addEventListener('change', updateSections);
     updateSections();
 });
