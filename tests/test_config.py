@@ -8,11 +8,15 @@ class TestAppConfig:
         config = AppConfig()
         assert config.schedule.timezone == "America/New_York"
         assert config.schedule.delivery_time == "07:00"
-        assert config.llm.provider == "anthropic"
+        assert config.llm.provider == ""
+        assert config.llm.model == ""
 
-    def test_llm_default_model(self):
+    def test_llm_config_empty_by_default(self):
+        """LLM config defaults to empty — user must configure via Settings."""
         config = AppConfig()
-        assert "claude" in config.llm.model.lower() or "haiku" in config.llm.model.lower()
+        assert config.llm.provider == ""
+        assert config.llm.model == ""
+        assert config.llm.api_key is None
 
 
 class TestLLMConfig:
