@@ -22,8 +22,8 @@ class ScheduleConfig(BaseModel):
 
 
 class LLMConfig(BaseModel):
-    provider: str = "anthropic"
-    model: str = "claude-haiku-4-5-20251001"
+    provider: str = ""
+    model: str = ""
     base_url: str | None = None
     _api_keys: dict[str, str] = {}
 
