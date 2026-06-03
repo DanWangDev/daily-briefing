@@ -65,6 +65,8 @@ async def update_settings(
     ollama_base_url: str = Form("http://localhost:11434"),
     qwen_api_key: str = Form(""),
     qwen_base_url: str = Form("https://dashscope-intl.aliyuncs.com/compatible-mode/v1"),
+    deepseek_api_key: str = Form(""),
+    deepseek_base_url: str = Form("https://api.deepseek.com/v1"),
     # Data source keys
     newsapi_key: str = Form(""),
     alpha_vantage_key: str = Form(""),
@@ -97,6 +99,7 @@ async def update_settings(
     base_url_map = {
         "ollama": ollama_base_url,
         "qwen": qwen_base_url,
+        "deepseek": deepseek_base_url,
     }
     if llm_provider in base_url_map:
         config.llm.base_url = base_url_map[llm_provider]
@@ -108,6 +111,8 @@ async def update_settings(
         config.llm.set_api_key("openai", openai_api_key.strip())
     if qwen_api_key.strip():
         config.llm.set_api_key("qwen", qwen_api_key.strip())
+    if deepseek_api_key.strip():
+        config.llm.set_api_key("deepseek", deepseek_api_key.strip())
 
     # Data source API keys
     if newsapi_key.strip():

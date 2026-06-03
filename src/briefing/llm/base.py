@@ -62,5 +62,14 @@ def create_llm_provider(config: LLMConfig) -> BaseLLMProvider:
                 model=config.model,
                 base_url=config.base_url or "https://dashscope-intl.aliyuncs.com/compatible-mode/v1",
             )
+        case "deepseek":
+            from briefing.llm.deepseek_provider import DeepSeekProvider
+            if not config.api_key:
+                raise ValueError("DeepSeek API key not configured — set it in Settings")
+            return DeepSeekProvider(
+                api_key=config.api_key,
+                model=config.model,
+                base_url=config.base_url or "https://api.deepseek.com/v1",
+            )
         case _:
             raise ValueError(f"Unknown LLM provider: {config.provider}")

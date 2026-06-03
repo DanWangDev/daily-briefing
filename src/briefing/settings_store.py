@@ -24,6 +24,7 @@ SECRET_KEYS = frozenset({
     "llm.api_key.anthropic",
     "llm.api_key.openai",
     "llm.api_key.qwen",
+    "llm.api_key.deepseek",
     "api_keys.newsapi",
     "api_keys.alpha_vantage",
     "api_keys.massive",
@@ -126,6 +127,7 @@ def save_settings(session: Session, config: AppConfig) -> None:
         "llm.api_key.anthropic": config.llm.get_api_key("anthropic"),
         "llm.api_key.openai": config.llm.get_api_key("openai"),
         "llm.api_key.qwen": config.llm.get_api_key("qwen"),
+        "llm.api_key.deepseek": config.llm.get_api_key("deepseek"),
         "api_keys.newsapi": config.api_keys.newsapi,
         "api_keys.alpha_vantage": config.api_keys.alpha_vantage,
         "api_keys.massive": config.api_keys.massive,
@@ -189,7 +191,7 @@ def load_settings(session: Session, config: AppConfig) -> None:
         config.llm.base_url = v or None
 
     # LLM API keys
-    for provider in ("anthropic", "openai", "qwen"):
+    for provider in ("anthropic", "openai", "qwen", "deepseek"):
         if v := _get(f"llm.api_key.{provider}"):
             config.llm.set_api_key(provider, v)
 
