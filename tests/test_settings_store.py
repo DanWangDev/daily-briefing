@@ -123,6 +123,26 @@ class TestSaveAndLoad:
         assert fresh.llm.get_api_key("anthropic") is None
         assert fresh.api_keys.newsapi is None
 
+    def test_deepseek_api_key_round_trip(self):
+        """DeepSeek provider key must survive save/load cycle."""
+        config = _make_config()
+        init_db(config)
+
+        config.llm.set_api_key("deepseek", "sk-deepseek-123")
+        config.llm.provider = "deepseek"
+        config.llm.model = "deepseek-chat"
+
+        with get_session() as session:
+            save_settings(session, config)
+
+        fresh = _make_config()
+        with get_session() as session:
+            load_settings(session, fresh)
+
+        assert fresh.llm.get_api_key("deepseek") == "sk-deepseek-123"
+        assert fresh.llm.provider == "deepseek"
+        assert fresh.llm.model == "deepseek-chat"
+
     def test_secrets_stored_encrypted(self):
         """The raw DB value for a secret should not be the plaintext."""
         config = _make_config()

@@ -37,6 +37,13 @@ PROVIDER_META: dict[str, dict] = {
         "default_base_url": "http://localhost:11434",
         "hint_key": "settings.ollama_hint",
     },
+    "deepseek": {
+        "display": "DeepSeek",
+        "requires_api_key": True,
+        "key_placeholder": "sk-...",
+        "has_base_url": True,
+        "default_base_url": "https://api.deepseek.com/v1",
+    },
 }
 
 
@@ -70,6 +77,9 @@ async def fetch_models(
         elif provider == "qwen":
             fallback = meta.get("default_base_url", "")
             result = await _fetch_qwen(api_key, base_url or fallback)
+        elif provider == "deepseek":
+            fallback = meta.get("default_base_url", "")
+            result = await _fetch_deepseek(api_key, base_url or fallback)
         elif provider == "ollama":
             result = await _fetch_ollama(base_url or meta.get("default_base_url", ""))
         else:
@@ -121,6 +131,18 @@ async def _fetch_openai(api_key: str) -> list[dict]:
 
 
 async def _fetch_qwen(api_key: str, base_url: str) -> list[dict]:
+    import openai
+
+    client = openai.AsyncOpenAI(api_key=api_key, base_url=base_url)
+    models: list[dict] = []
+    page = await client.models.list()
+    for model in page.data:
+        models.append({"id": model.id, "display": model.id})
+    models.sort(key=lambda m: m["display"].lower())
+    return models
+
+
+async def _fetch_deepseek(api_key: str, base_url: str) -> list[dict]:
     import openai
 
     client = openai.AsyncOpenAI(api_key=api_key, base_url=base_url)
