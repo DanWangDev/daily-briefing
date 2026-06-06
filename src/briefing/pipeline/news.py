@@ -200,6 +200,7 @@ async def _neutralize_ticker_articles(
                 ),
                 user=neutralize_prompt,
                 schema={"type": "object", "properties": output_props},
+                max_tokens=8000,
             )
         except Exception as exc:  # noqa: BLE001
             logger.warning(
@@ -284,6 +285,7 @@ async def _neutralize_macro_bundle(
                 "bias_analysis": {"type": "string"},
             },
         },
+        max_tokens=8000,
     )
 
     default_headline = (
