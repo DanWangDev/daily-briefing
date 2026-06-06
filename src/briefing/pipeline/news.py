@@ -117,11 +117,17 @@ async def _neutralize_ticker_articles(
     cluster_resp = await llm_provider.complete_json(
         system=(
             "You are a financial news analyst. Group the following articles "
-            "by the story they cover. Articles about the same event or topic "
-            "should be in the same cluster, even if they mention different tickers."
+            "by the SPECIFIC story they cover. Articles about the SAME event "
+            "or announcement should be in the same cluster. "
+            "Create SEPARATE clusters for DIFFERENT stories — do NOT lump "
+            "unrelated articles under broad themes like 'tech sector' or "
+            "'market news'. If articles are about different companies, products, "
+            "or events, put them in different clusters. "
+            "Aim for 5-15 clusters. Each cluster should have 2-15 articles."
             + lang_suffix
         ),
         user=cluster_prompt,
+        max_tokens=4000,
         schema={
             "type": "object",
             "properties": {
@@ -151,6 +157,28 @@ async def _neutralize_ticker_articles(
                 "article_indices": list(range(len(articles))),
             }
         ]
+
+    # Split oversized clusters (30+ articles) into chunks so the LLM can
+    # neutralize them without hitting output-token limits.
+    _MAX_CLUSTER_SIZE = 30
+    split_clusters: list[dict] = []
+    for cluster in clusters:
+        indices = cluster.get("article_indices", [])
+        if len(indices) > _MAX_CLUSTER_SIZE:
+            story = cluster.get("story", "News")
+            for chunk_idx, start in enumerate(range(0, len(indices), _MAX_CLUSTER_SIZE)):
+                chunk = indices[start:start + _MAX_CLUSTER_SIZE]
+                label = f"{story} ({chunk_idx + 1})" if len(indices) > _MAX_CLUSTER_SIZE else story
+                split_clusters.append({"story": label, "article_indices": chunk})
+            logger.info(
+                "Split oversized cluster %r from %d to %d chunks",
+                cluster.get("story", "?"),
+                len(indices),
+                (len(indices) + _MAX_CLUSTER_SIZE - 1) // _MAX_CLUSTER_SIZE,
+            )
+        else:
+            split_clusters.append(cluster)
+    clusters = split_clusters
 
     stories: list[NeutralizedStory] = []
     for cluster in clusters:
